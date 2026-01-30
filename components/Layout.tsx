@@ -12,6 +12,8 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRoleChange, onLogout }) => {
+  const logoUrl = "https://drive.google.com/uc?export=view&id=1rnltv3RUb1gsT9IyzCTCR-_cr85FcZ-u";
+  
   const allSidebarItems = [
     { role: UserRole.CUSTOMER, label: 'Portal Online', icon: ShoppingCart },
     { role: UserRole.PELAYAN, label: 'Waiter System', icon: TableIcon },
@@ -33,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
       <aside className="w-16 sm:w-20 md:w-64 glass border-r border-slate-800/50 flex flex-col z-50 sticky top-0 h-screen shrink-0 shadow-2xl">
         <div className="p-4 sm:p-6 flex items-center gap-3">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900 flex items-center justify-center neon-border shadow-cyan-500/10 overflow-hidden shrink-0">
-            <img src="/img/logo-bagindo.png" alt="Logo" className="w-full h-full object-cover" />
+            <img src={logoUrl} alt="Logo RM Bagindo Rajo" className="w-full h-full object-cover" />
           </div>
           <div className="hidden md:block overflow-hidden">
              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 neon-text-cyan font-mono tracking-tighter truncate uppercase">

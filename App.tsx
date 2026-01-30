@@ -15,6 +15,7 @@ const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<UserRole>(UserRole.GUEST);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [homeSubPage, setHomeSubPage] = useState<'LANDING' | 'FULL_MENU' | 'PROFILE' | 'CONTACT'>('LANDING');
+  const logoUrl = "https://drive.google.com/uc?export=view&id=1rnltv3RUb1gsT9IyzCTCR-_cr85FcZ-u";
   
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem('restoon_orders');
@@ -196,8 +197,8 @@ const App: React.FC = () => {
           <div className="relative glass w-full max-w-lg p-12 rounded-[3rem] border border-slate-800 space-y-8 shadow-2xl animate-in zoom-in-95 duration-300">
             <button onClick={() => setShowLogin(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
             <div className="text-center space-y-3">
-              <div className="w-16 h-16 bg-cyan-500/10 rounded-3xl flex items-center justify-center mx-auto border border-cyan-500/30 text-cyan-400 mb-2">
-                 {loginMode === 'STAFF' ? <Key size={32} /> : <UserIcon size={32} />}
+              <div className="w-20 h-20 bg-cyan-500/5 rounded-3xl flex items-center justify-center mx-auto border border-cyan-500/10 shadow-2xl mb-2 overflow-hidden">
+                 <img src={logoUrl} alt="RM Bagindo Rajo" className="w-full h-full object-cover" />
               </div>
               <h2 className="text-3xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">
                 {loginMode === 'STAFF' ? 'Secure Terminal' : loginMode === 'REGISTER' ? 'Join Resto-On' : 'Auth Protocol'}
