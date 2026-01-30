@@ -99,7 +99,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tab
   const canSubmit = cart.length > 0 && (orderType === OrderType.TAKEAWAY || selectedTable !== null);
 
   return (
-    <div className="space-y-6 md:space-y-8 pb-10 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 pb-32 animate-in fade-in duration-500">
       <header className="flex flex-col gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">Waiter System</h2>
@@ -148,7 +148,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tab
           </div>
         </div>
 
-        {/* Menu Selection - Menghapus max-h pada mobile agar mengikuti scroll halaman utama */}
+        {/* Menu Selection */}
         <div className="lg:col-span-6 space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
@@ -236,7 +236,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tab
                 disabled={!canSubmit || isSubmitting}
                 className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all uppercase tracking-widest text-[10px] ${
                   canSubmit && !isSubmitting
-                    ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white'
+                    ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-xl shadow-cyan-500/20'
                     : 'bg-slate-900 text-slate-700 cursor-not-allowed border border-slate-800'
                 }`}
               >

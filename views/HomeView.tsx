@@ -20,12 +20,16 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     setIsMobileMenuOpen(false);
   }, [activeSubPage]);
 
+  // FIX: Ditambahkan cleanup function agar overflow: hidden tidak nyangkut saat pindah role
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isMobileMenuOpen]);
 
   const navItems = [
@@ -255,7 +259,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
               onClick={onLoginClick}
               className="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-300 hover:border-cyan-500/50 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-xl"
             >
-              <LogIn size={14} className="text-cyan-500" /> Staff Login
+              <LogIn size={14} className="text-cyan-500" /> Login Masuk
             </button>
           </div>
 
@@ -283,7 +287,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
               {item.label}
             </button>
           ))}
-          {/* Mengubah 'Staff Terminal' menjadi 'Login Masuk' sesuai permintaan */}
           <button onClick={onLoginClick} className="px-10 py-5 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest text-xs">Login Masuk</button>
         </div>
       </div>

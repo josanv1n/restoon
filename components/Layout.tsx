@@ -30,8 +30,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
   });
 
   return (
-    <div className="min-h-screen flex bg-slate-950 text-slate-200 selection:bg-cyan-500 overflow-x-hidden">
-      <aside className="w-16 sm:w-20 md:w-64 glass border-r border-slate-800/50 flex flex-col z-50 sticky top-0 h-screen shrink-0 shadow-2xl">
+    /* FIX: Menggunakan h-screen dan overflow-hidden pada root untuk mengunci viewport dan membiarkan konten utama yang melakukan scroll */
+    <div className="h-screen flex bg-slate-950 text-slate-200 selection:bg-cyan-500 overflow-hidden">
+      <aside className="w-16 sm:w-20 md:w-64 glass border-r border-slate-800/50 flex flex-col z-50 h-full shrink-0 shadow-2xl">
         <div className="p-4 sm:p-6 flex items-center gap-3">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900 flex items-center justify-center neon-border shadow-cyan-500/10 overflow-hidden shrink-0">
             <img 
@@ -53,7 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
           </div>
         </div>
 
-        <nav className="flex-1 px-2 sm:px-4 py-4 sm:py-8 space-y-2 sm:space-y-3">
+        <nav className="flex-1 px-2 sm:px-4 py-4 sm:py-8 space-y-2 sm:space-y-3 overflow-y-auto no-scrollbar">
           {sidebarItems.map((item) => (
             <button
               key={item.role}
@@ -95,10 +96,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
         </div>
       </aside>
 
-      {/* Memperbaiki scrolling di Android dengan touch-scrolling dan min-h-screen */}
-      <main className="flex-1 relative overflow-y-auto overflow-x-hidden custom-scrollbar bg-slate-950 min-h-screen" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {/* Area Konten Utama yang melakukan scrolling */}
+      <main className="flex-1 relative overflow-y-auto overflow-x-hidden custom-scrollbar bg-slate-950 h-full" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_#1e293b_0%,_transparent_50%)] opacity-20 pointer-events-none"></div>
-        <div className="p-4 sm:p-6 md:p-10 relative pb-24 md:pb-10">
+        <div className="p-4 sm:p-6 md:p-10 relative pb-32">
           {children}
         </div>
       </main>
