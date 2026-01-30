@@ -62,8 +62,12 @@ const App: React.FC = () => {
       setLoading(true);
       try {
         await fetch('/api/setup');
+        // Setelah setup, langsung ambil data terbaru dari database
         await fetchData(true);
-      } catch (e) { fetchData(true); }
+      } catch (e) { 
+        console.error("Setup error:", e);
+        fetchData(true); 
+      }
     };
     initSystem();
     const interval = setInterval(() => fetchData(), 10000); 
@@ -164,7 +168,7 @@ const App: React.FC = () => {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-slate-950">
            <Loader2 size={48} className="animate-spin text-cyan-500" />
-           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Verifying RESTO-ON Protocol...</p>
+           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Synchronizing RESTO-ON Protocol...</p>
         </div>
       ) : renderRoleView()}
 
