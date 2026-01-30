@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserRole, Order, OrderStatus, PaymentMethod, MenuItem, AppSettings } from './types';
 import { INITIAL_MENU } from './constants';
 import Layout from './components/Layout';
@@ -9,22 +9,25 @@ import WaiterView from './views/WaiterView';
 import CashierView from './views/CashierView';
 import AdminView from './views/AdminView';
 import ManagementView from './views/ManagementView';
-import { Loader2, Megaphone, X, ChevronRight } from 'lucide-react';
-
-type GuestView = 'LANDING' | 'FULL_MENU' | 'PROFILE' | 'CONTACT';
+import { Loader2, X, ChevronRight } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<UserRole>(UserRole.GUEST);
-  const [guestView, setGuestView] = useState<GuestView>('LANDING');
   const [orders, setOrders] = useState<Order[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>(INITIAL_MENU);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  
+  // Menggunakan Ref untuk mencegah race condition (looping fetch)
+  const isFetchingRef = useRef(false);
 
-  const fetchInitialData = useCallback(async (showFullLoader = false) => {
-    if (showFullLoader) setLoading(true);
+  const fetchData = useCallback(async (isFullLoad = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    if (isFullLoad) setLoading(true);
     else setSyncing(true);
     
     try {
@@ -40,66 +43,49 @@ const App: React.FC = () => {
       }
       if (menuRes.ok) {
         const remoteMenu = await menuRes.json();
-        if (remoteMenu && remoteMenu.length > 0) {
-          setMenu(remoteMenu);
-        }
+        if (remoteMenu && remoteMenu.length > 0) setMenu(remoteMenu);
       }
       if (settingsRes.ok) setSettings(await settingsRes.json());
     } catch (err) {
-      console.error("Failed to fetch initial data:", err);
+      console.error("Sync error:", err);
     } finally {
       setLoading(false);
       setSyncing(false);
+      isFetchingRef.current = false;
     }
   }, []);
 
   useEffect(() => {
-    fetchInitialData(true);
+    // Jalankan load pertama kali
+    fetchData(true);
     
-    // Auto-sync every 15 seconds to keep Waiter and Cashier aligned
-    const interval = setInterval(() => fetchInitialData(), 15000);
-    
-    // Listen for manual refresh events from sub-views
-    const handleManualRefresh = () => fetchInitialData();
-    window.addEventListener('refreshData', handleManualRefresh);
+    // Set interval sinkronisasi
+    const interval = setInterval(() => {
+      fetchData();
+    }, 15000); 
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener('refreshData', handleRefresh);
     
     return () => {
       clearInterval(interval);
-      window.removeEventListener('refreshData', handleManualRefresh);
+      window.removeEventListener('refreshData', handleRefresh);
     };
-  }, [fetchInitialData]);
+  }, [fetchData]);
 
   const handlePlaceOrder = async (newOrder: Order) => {
     setLoading(true);
     try {
-      const origin = activeRole === UserRole.CUSTOMER ? 'ONLINE' : 'OFFLINE';
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newOrder, origin })
+        body: JSON.stringify(newOrder)
       });
-      if (res.ok) {
-        await fetchInitialData(); 
-      }
+      if (res.ok) await fetchData();
     } catch (err) {
       alert("Gagal mengirim pesanan.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: orderId, status })
-      });
-      if (res.ok) {
-        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-      }
-    } catch (err) {
-      console.error("Update failed:", err);
     }
   };
 
@@ -115,108 +101,70 @@ const App: React.FC = () => {
           paymentMethod: method 
         })
       });
-      if (res.ok) {
-        await fetchInitialData();
-      }
+      if (res.ok) await fetchData();
     } catch (err) {
       console.error("Payment failed:", err);
     }
   };
 
-  const handleLogin = (role: UserRole) => {
-    setActiveRole(role);
-    setShowLogin(false);
-    setGuestView('LANDING');
-  };
-
   const renderActiveView = () => {
     switch (activeRole) {
-      case UserRole.CUSTOMER:
-        return <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} />;
-      case UserRole.PELAYAN:
-        return <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={handleUpdateOrderStatus} />;
-      case UserRole.KASIR:
-        return <CashierView orders={orders} onProcessPayment={handleProcessPayment} />;
-      case UserRole.ADMIN:
-        return <AdminView menu={menu} onMenuUpdate={() => fetchInitialData(true)} settings={settings} />;
-      case UserRole.MANAGEMENT:
-        return <ManagementView orders={orders} />;
-      default:
-        return null;
+      case UserRole.CUSTOMER: return <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} />;
+      case UserRole.PELAYAN: return <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} />;
+      case UserRole.KASIR: return <CashierView orders={orders} onProcessPayment={handleProcessPayment} />;
+      case UserRole.ADMIN: return <AdminView menu={menu} onMenuUpdate={() => fetchData(true)} settings={settings} />;
+      case UserRole.MANAGEMENT: return <ManagementView orders={orders} />;
+      default: return null;
     }
   };
 
   if (activeRole === UserRole.GUEST) {
     return (
-      <>
-        <HomeView 
-          menu={menu} 
-          onLoginClick={() => setShowLogin(true)} 
-          onOrderOnline={() => handleLogin(UserRole.CUSTOMER)}
-          activeSubPage={guestView}
-          onSetSubPage={setGuestView}
-        />
-        
-        {showLogin && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
-            <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-8 animate-in zoom-in duration-300 shadow-[0_0_50px_rgba(34,211,238,0.2)]">
-              <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
-              <div className="text-center space-y-2">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border mx-auto mb-6 shadow-cyan-500/20">
-                  <span className="font-bold text-3xl text-white">R</span>
-                </div>
-                <h2 className="text-2xl font-bold neon-text-cyan">Resto-On System</h2>
-                <p className="text-slate-500 text-sm">Otentikasi Akses BAGINDO RAJO</p>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {[
-                  { role: UserRole.PELAYAN, label: 'Crew: Waiter / Pelayan', color: 'border-slate-800 hover:border-cyan-500/50 hover:bg-cyan-500/5' },
-                  { role: UserRole.KASIR, label: 'Crew: Kasir', color: 'border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-500/5' },
-                  { role: UserRole.ADMIN, label: 'Manager: Administrator', color: 'border-slate-800 hover:border-pink-500/50 hover:bg-pink-500/5' },
-                  { role: UserRole.MANAGEMENT, label: 'Owner: Management', color: 'border-slate-800 hover:border-purple-500/50 hover:bg-purple-500/5' },
-                ].map((btn) => (
-                  <button 
-                    key={btn.role}
-                    onClick={() => handleLogin(btn.role)}
-                    className={`w-full py-4 px-6 rounded-2xl border ${btn.color} text-left font-bold transition-all group flex items-center justify-between`}
-                  >
-                    <span className="text-slate-300 group-hover:text-white transition-colors">{btn.label}</span>
-                    <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </>
+      <HomeView 
+        menu={menu} 
+        onLoginClick={() => setShowLogin(true)} 
+        onOrderOnline={() => setActiveRole(UserRole.CUSTOMER)}
+        activeSubPage="LANDING"
+        onSetSubPage={() => {}}
+      />
     );
   }
 
   return (
     <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}>
       <div className="relative">
-        {settings?.promoText && activeRole === UserRole.CUSTOMER && (
-          <div className="mb-8 glass bg-cyan-500/10 border-cyan-500/20 p-4 rounded-2xl flex items-center gap-4 text-cyan-400 animate-pulse">
-            <Megaphone size={24} />
-            <p className="font-bold uppercase tracking-widest text-sm">{settings.promoText}</p>
-          </div>
-        )}
-
         {syncing && (
           <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[10px] font-bold animate-pulse">
-            <Loader2 size={12} className="animate-spin" /> SYNCING DATA...
+            <Loader2 size={12} className="animate-spin" /> SYNCING...
           </div>
         )}
-
+        
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
              <Loader2 size={48} className="animate-spin text-cyan-500" />
-             <p className="text-sm font-bold uppercase tracking-[0.3em] text-slate-500 animate-pulse">Initializing System...</p>
+             <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing System...</p>
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-right-10 duration-500">
+          <div className="animate-in fade-in duration-500">
             {renderActiveView()}
+          </div>
+        )}
+
+        {showLogin && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
+            <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6">
+              <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-slate-500"><X size={24} /></button>
+              <h2 className="text-2xl font-bold neon-text-cyan text-center">Resto-On Login</h2>
+              <div className="grid gap-3">
+                {[UserRole.PELAYAN, UserRole.KASIR, UserRole.ADMIN, UserRole.MANAGEMENT].map(role => (
+                  <button key={role} onClick={() => { setActiveRole(role); setShowLogin(false); }} className="w-full py-4 px-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 text-left font-bold transition-all flex justify-between items-center group">
+                    <span className="text-slate-300 group-hover:text-white uppercase text-xs tracking-widest">{role}</span>
+                    <ChevronRight size={16} />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

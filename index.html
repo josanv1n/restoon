@@ -32,30 +32,32 @@
     .neon-text-pink {
       text-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
     }
-    ::-webkit-scrollbar {
+    .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
     }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
     }
-    ::-webkit-scrollbar-thumb {
+    .custom-scrollbar::-webkit-scrollbar-thumb {
       background: #1e293b;
       border-radius: 10px;
     }
-    ::-webkit-scrollbar-thumb:hover {
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #334155;
     }
   </style>
 <script type="importmap">
 {
   "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
     "recharts": "https://esm.sh/recharts@^3.7.0",
     "@vercel/postgres": "https://esm.sh/@vercel/postgres@^0.10.0",
-    "@vercel/node": "https://esm.sh/@vercel/node@^5.5.28"
+    "@vercel/node": "https://esm.sh/@vercel/node@^5.5.28",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
 </script>
