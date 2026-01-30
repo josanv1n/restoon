@@ -70,7 +70,7 @@ const App: React.FC = () => {
     
     initSystem();
 
-    const interval = setInterval(() => fetchData(), 3000); 
+    const interval = setInterval(() => fetchData(), 5000); // Jarangkan sedikit interval untuk stabilitas
     const handleRefresh = () => fetchData();
     window.addEventListener('refreshData', handleRefresh);
     
@@ -85,16 +85,23 @@ const App: React.FC = () => {
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(newOrder)
       });
+      
+      const result = await res.json();
+      
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to save order");
+        throw new Error(result.error || "Gagal menyimpan pesanan");
       }
+      
       await fetchData();
     } catch (err: any) {
-      alert("ERROR SISTEM: " + err.message);
+      console.error("Fetch Error Detail:", err);
+      alert("GANGGUAN KONEKSI DATABASE: " + err.message);
     } finally {
       setLoading(false);
     }
