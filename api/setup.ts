@@ -9,7 +9,8 @@ const pool = createPool({
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is missing.");
-    const OPT = 'q=40&w=320&auto=format&fit=crop';
+    // Ultra Low-Res Optimization
+    const OPT = 'q=20&w=200&auto=format&fit=crop&fm=webp';
 
     await pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`;
@@ -23,13 +24,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (tableSetting.length === 0) {
       await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12')`;
     }
+    
+    // Set Default App Name
+    const { rows: nameSetting } = await pool.sql`SELECT * FROM settings WHERE key = 'restaurantName'`;
+    if (nameSetting.length === 0) {
+      await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'Resto-On')`;
+    }
 
     try { await pool.sql`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS image_url TEXT`; } catch(e) {}
 
-    // Force update all images to low-res for existing data
+    // Force update all images to Ultra low-res for existing data
     const { rows: currentMenu } = await pool.sql`SELECT id, image_url FROM menu_items`;
     for (const item of currentMenu) {
-        if (item.image_url && item.image_url.includes('unsplash.com') && !item.image_url.includes('q=40')) {
+        if (item.image_url && item.image_url.includes('unsplash.com')) {
             const cleanUrl = item.image_url.split('?')[0];
             await pool.sql`UPDATE menu_items SET image_url = ${`${cleanUrl}?${OPT}`} WHERE id = ${item.id}`;
         }
@@ -46,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
     
-    return res.status(200).json({ success: true, message: "Protocol Optimized for Speed." });
+    return res.status(200).json({ success: true, message: "Protocol Optimized for Ultra-Speed." });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

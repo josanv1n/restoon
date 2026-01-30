@@ -41,24 +41,26 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40 z-10"></div>
+          {/* Hero Image - High Priority */}
           <img 
             src="https://images.unsplash.com/photo-1626074353765-517a681e40be?q=30&w=800&auto=format&fit=crop" 
             alt="Hero BG" 
             className="w-full h-full object-cover opacity-60 scale-105 will-change-transform"
+            loading="eager"
           />
         </div>
 
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-20">
           <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-md">
-              <Star size={12} className="fill-cyan-400" /> Authentic Minang
+              <Star size={12} className="fill-cyan-400" /> Future Dining System
             </div>
             <h1 className="text-5xl md:text-8xl font-bold leading-tight tracking-tighter text-white">
               The Future of <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 neon-text-cyan">Minang Cuisine.</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 neon-text-cyan">Culinary Order.</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-300 max-w-lg leading-relaxed font-medium">
-              Nikmati kelezatan <span className="text-cyan-400 font-bold">Rendang & Jengkol Balado</span> yang tersaji dengan estetika modern di <span className="text-white font-bold underline decoration-cyan-500">RM. Bagindo Rajo</span>.
+              Akses menu favorit Anda dengan kecepatan cahaya di <span className="text-white font-bold underline decoration-cyan-500">Resto-On</span>. Rasakan revolusi digital dalam setiap suapan.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <button 
@@ -86,7 +88,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
                     src={item.imageUrl} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                     alt={item.name} 
-                    loading="lazy" 
+                    loading="eager" 
                    />
                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
                 </div>
@@ -146,8 +148,8 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
   const renderProfile = () => (
     <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-in fade-in duration-300">
       <div className="glass p-12 rounded-[3rem] border-slate-800 space-y-8 shadow-2xl relative overflow-hidden text-center">
-        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">RM. Bagindo Rajo</h2>
-        <p className="text-xl text-slate-300 italic font-light">"Penjaga warisan budaya Minangkabau."</p>
+        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">Resto-On</h2>
+        <p className="text-xl text-slate-300 italic font-light">"Digital Dining Experience, Personalized."</p>
       </div>
     </section>
   );
@@ -160,7 +162,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <Mail className="text-cyan-400" size={20} />
             <div>
               <p className="font-black text-[10px] uppercase tracking-widest text-slate-200">Email Support</p>
-              <p className="text-sm text-slate-400 font-bold">hello@bagindorajo.id</p>
+              <p className="text-sm text-slate-400 font-bold">support@restoon.app</p>
             </div>
         </div>
       </div>
@@ -176,7 +178,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border shadow-cyan-500/30 group-hover:rotate-[360deg] transition-transform duration-700">
               <UtensilsCrossed size={24} className="text-white" />
             </div>
-            <span className="text-xl md:text-2xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">RM. Bagindo Rajo</span>
+            <span className="text-xl md:text-2xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">Resto-On</span>
           </div>
 
           {/* Desktop Nav */}
@@ -270,7 +272,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
 
       <footer className="mt-20 py-10 border-t border-slate-800/50 px-6 relative z-10 opacity-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em]">
-          <p>© 2025 RM. Bagindo Rajo | Resto-On OS</p>
+          <p>© 2025 Resto-On | Online OS</p>
         </div>
       </footer>
     </div>

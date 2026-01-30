@@ -1,8 +1,8 @@
 
 import { MenuItem } from './types';
 
-// Optimization params: q=40 (quality 40%), w=320 (width 320px), auto=format (next-gen webp/avif)
-const OPT = 'q=40&w=320&auto=format&fit=crop';
+// Optimization params: q=20 (very low quality), w=200 (small width), auto=format, fm=webp (next-gen compression)
+const OPT = 'q=20&w=200&auto=format&fit=crop&fm=webp';
 
 export const INITIAL_MENU: MenuItem[] = [
   { id: '1', name: 'Nasi + Rendang', price: 26000, category: 'FOOD', stock: 100, imageUrl: `https://images.unsplash.com/photo-1626074353765-517a681e40be?${OPT}` },
