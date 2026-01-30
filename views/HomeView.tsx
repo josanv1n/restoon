@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
-import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, UtensilsCrossed, Utensils } from 'lucide-react';
+import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, Utensils } from 'lucide-react';
 
 interface HomeViewProps {
   menu: MenuItem[];
@@ -161,6 +161,9 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
   const renderProfile = () => (
     <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-in fade-in duration-300">
       <div className="glass p-12 rounded-[3rem] border-slate-800 space-y-8 shadow-2xl relative overflow-hidden text-center">
+        <div className="w-24 h-24 mx-auto rounded-3xl overflow-hidden border-2 border-cyan-500/50 shadow-cyan-500/20 shadow-2xl mb-6">
+          <img src="/img/logo-bagindo.png" alt="Logo" className="w-full h-full object-cover" />
+        </div>
         <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">RM. Bagindo Rajo</h2>
         <p className="text-xl text-slate-300 italic font-light">"Rumah Makan Padang Terenak dan Terbaik."</p>
       </div>
@@ -172,7 +175,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
       <div className="glass p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border-slate-800 space-y-10 shadow-2xl relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl"></div>
         
-        <div className="space-y-3">
+        <div className="space-y-3 text-center md:text-left">
           <h2 className="text-4xl font-bold neon-text-cyan font-mono uppercase tracking-tighter">Hubungi Kami</h2>
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Layanan Pelanggan RM. Bagindo Rajo</p>
         </div>
@@ -224,11 +227,11 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
       <nav className="fixed top-0 w-full z-[100] glass border-b border-slate-800/50 shadow-2xl">
         <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => onSetSubPage('LANDING')}>
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:rotate-12 transition-transform">
-              <UtensilsCrossed size={20} className="text-white" />
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg shadow-cyan-500/10 group-hover:rotate-12 transition-transform overflow-hidden border border-slate-800">
+              <img src="/img/logo-bagindo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tighter text-white neon-text-cyan">RM. Bagindo Rajo</h1>
+              <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tighter text-white neon-text-cyan uppercase">Bagindo Rajo</h1>
               <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Premium Padang Cuisine</p>
             </div>
           </div>
@@ -264,6 +267,9 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
           <X size={32} />
         </button>
         <div className="flex flex-col items-center justify-center h-full space-y-10">
+          <div className="w-20 h-20 rounded-3xl overflow-hidden border-2 border-cyan-500/30 shadow-2xl mb-4">
+             <img src="/img/logo-bagindo.png" alt="Logo" className="w-full h-full object-cover" />
+          </div>
           {navItems.map((item) => (
             <button 
               key={item.id}
@@ -285,8 +291,10 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-6">
              <div className="flex items-center gap-3">
-               <UtensilsCrossed size={24} className="text-cyan-500" />
-               <h3 className="text-2xl font-bold font-mono tracking-tighter uppercase">RM. Bagindo Rajo</h3>
+               <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-800">
+                  <img src="/img/logo-bagindo.png" alt="Logo" className="w-full h-full object-cover" />
+               </div>
+               <h3 className="text-2xl font-bold font-mono tracking-tighter uppercase">Bagindo Rajo</h3>
              </div>
              <p className="text-sm text-slate-500 leading-relaxed">
                Mendefinisikan ulang cara Anda menikmati masakan Padang melalui teknologi pesanan digital masa depan yang cepat dan efisien.

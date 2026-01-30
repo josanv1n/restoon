@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserRole } from '../types';
-import { LayoutDashboard, Users, User, LogOut, ShoppingCart, Table as TableIcon, CreditCard, Settings, BarChart3, ChevronRight, UtensilsCrossed } from 'lucide-react';
+import { LayoutDashboard, Users, User, LogOut, ShoppingCart, Table as TableIcon, CreditCard, Settings, BarChart3, ChevronRight } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,8 +32,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
     <div className="min-h-screen flex bg-slate-950 text-slate-200 selection:bg-cyan-500 overflow-x-hidden">
       <aside className="w-16 sm:w-20 md:w-64 glass border-r border-slate-800/50 flex flex-col z-50 sticky top-0 h-screen shrink-0 shadow-2xl">
         <div className="p-4 sm:p-6 flex items-center gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border shadow-cyan-500/20 shrink-0">
-            <UtensilsCrossed size={18} className="text-white" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900 flex items-center justify-center neon-border shadow-cyan-500/10 overflow-hidden shrink-0">
+            <img src="/img/logo-bagindo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="hidden md:block overflow-hidden">
              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 neon-text-cyan font-mono tracking-tighter truncate uppercase">
