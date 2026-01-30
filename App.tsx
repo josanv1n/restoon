@@ -28,7 +28,6 @@ const App: React.FC = () => {
   const [password, setPassword] = useState('');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
-  const [regPhone, setRegPhone] = useState('');
 
   const isFetchingRef = useRef(false);
 
@@ -46,14 +45,8 @@ const App: React.FC = () => {
         fetch('/api/settings')
       ]);
       
-      if (orderRes.ok) {
-        const data = await orderRes.json();
-        setOrders(Array.isArray(data) ? data : []);
-      }
-      if (menuRes.ok) {
-        const remoteMenu = await menuRes.json();
-        if (remoteMenu && Array.isArray(remoteMenu)) setMenu(remoteMenu);
-      }
+      if (orderRes.ok) setOrders(await orderRes.json());
+      if (menuRes.ok) setMenu(await menuRes.json());
       if (settingsRes.ok) setSettings(await settingsRes.json());
     } catch (err) {
       console.error("Sync error:", err);
@@ -73,7 +66,7 @@ const App: React.FC = () => {
       } catch (e) { fetchData(true); }
     };
     initSystem();
-    const interval = setInterval(() => fetchData(), 7000); 
+    const interval = setInterval(() => fetchData(), 10000); 
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -81,48 +74,45 @@ const App: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Mock Login Logic (Ideally call /api/auth)
-      const res = await fetch('/api/setup'); // Quick ping to check if setup is run
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, type: loginMode })
+      });
       
-      if (loginMode === 'STAFF') {
-        // Staff validation logic usually goes to a real endpoint, but for this demo:
-        // Admin: admin / admin123
-        if (username === 'admin' && password === 'admin123') {
-           setCurrentUser({ name: 'Super Admin', username: 'admin' });
-           setActiveRole(UserRole.ADMIN);
-        } else if (username === 'pelayan1' && password === '12345') {
-           setCurrentUser({ name: 'Budi Waiter', username: 'pelayan1' });
-           setActiveRole(UserRole.PELAYAN);
-        } else if (username === 'kasir1' && password === '12345') {
-           setCurrentUser({ name: 'Siti Cashier', username: 'kasir1' });
-           setActiveRole(UserRole.KASIR);
-        } else {
-           alert("Username/Password Staff Salah!");
-           setLoading(false);
-           return;
-        }
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        setCurrentUser(data.user);
+        setActiveRole(data.user.role || UserRole.CUSTOMER);
+        setShowLogin(false);
+        setUsername('');
+        setPassword('');
       } else {
-        // Customer Login (Demo)
-        setCurrentUser({ name: username || 'Customer', email: username });
-        setActiveRole(UserRole.CUSTOMER);
+        alert("LOGIN GAGAL: " + (data.error || "Kredensial tidak sesuai."));
       }
-      
-      setShowLogin(false);
-      setUsername(''); setPassword('');
-    } catch (err) { alert("Login Error"); }
-    finally { setLoading(false); }
+    } catch (err) {
+      alert("Error Sistem: Gagal menghubungi server autentikasi.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Pendaftaran Berhasil! Silakan Login.");
-    setLoginMode('CUSTOMER');
+    setLoading(true);
+    try {
+      // Logic registrasi (simplified)
+      alert("Pendaftaran Berhasil! Silakan Login.");
+      setLoginMode('CUSTOMER');
+    } catch (err) { alert("Registrasi Gagal"); }
+    finally { setLoading(false); }
   };
 
   const handlePlaceOrder = async (newOrder: Order) => {
     setLoading(true);
     try {
-      const payload = { ...newOrder, customerId: currentUser?.email };
+      const payload = { ...newOrder, customerId: currentUser?.email || currentUser?.username };
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -174,7 +164,7 @@ const App: React.FC = () => {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-slate-950">
            <Loader2 size={48} className="animate-spin text-cyan-500" />
-           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Processing RESTO-ON OS...</p>
+           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Verifying RESTO-ON Protocol...</p>
         </div>
       ) : renderRoleView()}
 
@@ -189,15 +179,12 @@ const App: React.FC = () => {
                  {loginMode === 'STAFF' ? <Key size={32} /> : <UserIcon size={32} />}
               </div>
               <h2 className="text-3xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">
-                {loginMode === 'STAFF' ? 'Secure Terminal' : loginMode === 'REGISTER' ? 'Join Bagindo' : 'Welcome Back'}
+                {loginMode === 'STAFF' ? 'Secure Terminal' : loginMode === 'REGISTER' ? 'Join Resto-On' : 'Auth Protocol'}
               </h2>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                {loginMode === 'STAFF' ? 'Authorized Personnel Only' : 'Order food online with special rewards'}
-              </p>
             </div>
 
             <div className="flex bg-slate-900/80 p-1 rounded-2xl border border-slate-800">
-              <button onClick={() => setLoginMode('STAFF')} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${loginMode === 'STAFF' ? 'bg-cyan-500 text-white shadow-lg' : 'text-slate-500'}`}>STAFF LOGIN</button>
+              <button onClick={() => setLoginMode('STAFF')} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${loginMode === 'STAFF' ? 'bg-cyan-500 text-white shadow-lg' : 'text-slate-500'}`}>STAFF</button>
               <button onClick={() => setLoginMode('CUSTOMER')} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${loginMode === 'CUSTOMER' || loginMode === 'REGISTER' ? 'bg-pink-600 text-white shadow-lg' : 'text-slate-500'}`}>CUSTOMER</button>
             </div>
 
@@ -226,15 +213,16 @@ const App: React.FC = () => {
               </div>
 
               <button type="submit" className={`w-full py-5 rounded-2xl text-white font-bold shadow-xl transition-all uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 ${loginMode === 'STAFF' ? 'bg-gradient-to-r from-cyan-600 to-blue-700 shadow-cyan-500/20' : 'bg-gradient-to-r from-pink-600 to-rose-700 shadow-pink-500/20'}`}>
-                {loginMode === 'REGISTER' ? 'Create Account' : 'Authenticate Session'}
+                {loginMode === 'REGISTER' ? 'Register Now' : 'Initialize Session'}
                 <ChevronRight size={18} />
               </button>
             </form>
             
             <div className="text-center pt-4">
               {loginMode === 'STAFF' ? (
-                <div className="flex items-center gap-2 justify-center text-slate-600 text-[10px] font-bold italic">
-                   <Info size={12} /> DEFAULT: admin / admin123
+                <div className="flex flex-col gap-2 items-center text-slate-600 text-[10px] font-bold">
+                   <div className="flex items-center gap-2 uppercase tracking-widest"><Info size={12} /> Database Synced</div>
+                   <p className="opacity-50 italic">Gunakan Username & Password dari Tabel Users Anda.</p>
                 </div>
               ) : (
                 <p className="text-xs text-slate-500">
@@ -243,7 +231,7 @@ const App: React.FC = () => {
                     onClick={() => setLoginMode(loginMode === 'REGISTER' ? 'CUSTOMER' : 'REGISTER')}
                     className="ml-2 text-pink-400 font-bold hover:underline"
                   >
-                    {loginMode === 'REGISTER' ? 'Login Disini' : 'Daftar Sekarang'}
+                    {loginMode === 'REGISTER' ? 'Login' : 'Daftar'}
                   </button>
                 </p>
               )}
