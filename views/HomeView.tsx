@@ -1,7 +1,7 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
-import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail } from 'lucide-react';
+import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X } from 'lucide-react';
 
 interface HomeViewProps {
   menu: MenuItem[];
@@ -12,11 +12,20 @@ interface HomeViewProps {
 }
 
 const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, activeSubPage, onSetSubPage }) => {
-  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Efek untuk scroll ke atas setiap kali sub-page berubah
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsMobileMenuOpen(false); // Tutup menu mobile saat berpindah
   }, [activeSubPage]);
+
+  const navItems = [
+    { label: 'Beranda', id: 'LANDING' as const },
+    { label: 'Profil', id: 'PROFILE' as const },
+    { label: 'Menu Favorit', id: 'FULL_MENU' as const },
+    { label: 'Kontak', id: 'CONTACT' as const },
+  ];
 
   const renderLanding = () => (
     <>
@@ -28,23 +37,23 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-xs font-bold uppercase tracking-widest">
               <Star size={14} className="fill-cyan-400" /> Citarasa Autentik Minang
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold leading-tight tracking-tighter">
+            <h1 className="text-5xl md:text-8xl font-bold leading-tight tracking-tighter">
               The Future of <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Minang Cuisine.</span>
             </h1>
-            <p className="text-xl text-slate-400 max-w-lg leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-400 max-w-lg leading-relaxed">
               Rumah Makan <span className="text-white font-bold">BAGINDO RAJO</span> menghadirkan kelezatan legendaris Nasi Padang dengan sentuhan teknologi modern.
             </p>
             <div className="flex flex-wrap gap-4">
               <button 
                 onClick={onOrderOnline}
-                className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 rounded-2xl text-white font-bold shadow-xl shadow-cyan-500/20 hover:scale-105 transition-all flex items-center gap-3"
+                className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 rounded-2xl text-white font-bold shadow-xl shadow-cyan-500/20 hover:scale-105 transition-all flex items-center gap-3 cursor-pointer"
               >
                 Pesan Online Sekarang <ChevronRight size={20} />
               </button>
               <button 
                 onClick={() => onSetSubPage('FULL_MENU')}
-                className="px-8 py-4 glass rounded-2xl font-bold border-slate-800 hover:border-slate-700 transition-all"
+                className="px-8 py-4 glass rounded-2xl font-bold border-slate-800 hover:border-slate-700 transition-all cursor-pointer"
               >
                 Lihat Menu Lengkap
               </button>
@@ -85,7 +94,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             </div>
             <button 
               onClick={() => onSetSubPage('FULL_MENU')}
-              className="text-cyan-400 text-sm font-bold flex items-center gap-1 hover:underline underline-offset-4"
+              className="text-cyan-400 text-sm font-bold flex items-center gap-1 hover:underline underline-offset-4 cursor-pointer"
             >
               LIHAT SEMUA MENU <ChevronRight size={16} />
             </button>
@@ -112,7 +121,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
   const renderFullMenu = () => (
     <section className="pt-32 pb-20 px-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
       <div className="flex items-center gap-4 mb-10">
-        <button onClick={() => onSetSubPage('LANDING')} className="p-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+        <button onClick={() => onSetSubPage('LANDING')} className="p-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all cursor-pointer">
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -134,7 +143,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             </div>
             <div className="mt-8 flex items-center justify-between pt-6 border-t border-slate-800/50">
               <span className="text-2xl font-bold font-mono text-cyan-400">Rp {item.price.toLocaleString('id-ID')}</span>
-              <button onClick={onOrderOnline} className="px-6 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all">
+              <button onClick={onOrderOnline} className="px-6 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all cursor-pointer">
                 PESAN ONLINE
               </button>
             </div>
@@ -148,7 +157,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
       <div className="glass p-12 rounded-[3rem] border-slate-800 space-y-12">
         <div className="space-y-6 text-center">
-          <button onClick={() => onSetSubPage('LANDING')} className="mx-auto block text-slate-500 hover:text-cyan-400 transition-colors mb-4 flex items-center gap-2 justify-center font-bold text-xs">
+          <button onClick={() => onSetSubPage('LANDING')} className="mx-auto block text-slate-500 hover:text-cyan-400 transition-colors mb-4 flex items-center gap-2 justify-center font-bold text-xs cursor-pointer">
             <ArrowLeft size={14} /> KEMBALI KE BERANDA
           </button>
           <h2 className="text-6xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">Bagindo Rajo</h2>
@@ -232,7 +241,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors"></div>
             <p className="relative z-10 font-bold text-slate-600 uppercase tracking-widest text-xs">Interactive Map Loading...</p>
           </div>
-          <button onClick={() => onSetSubPage('LANDING')} className="text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">KEMBALI KE BERANDA</button>
+          <button onClick={() => onSetSubPage('LANDING')} className="text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest cursor-pointer">KEMBALI KE BERANDA</button>
         </div>
       </div>
     </section>
@@ -243,25 +252,66 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-[100] glass border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onSetSubPage('LANDING')}>
+          <div className="flex items-center gap-3 cursor-pointer relative z-[101]" onClick={() => onSetSubPage('LANDING')}>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border shadow-cyan-500/20">
               <span className="font-bold text-xl text-white">BR</span>
             </div>
             <span className="text-xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">Bagindo Rajo</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 uppercase tracking-widest">
-            <button onClick={() => onSetSubPage('LANDING')} className={`hover:text-cyan-400 transition-colors ${activeSubPage === 'LANDING' ? 'text-cyan-400' : ''}`}>Beranda</button>
-            <button onClick={() => onSetSubPage('PROFILE')} className={`hover:text-cyan-400 transition-colors ${activeSubPage === 'PROFILE' ? 'text-cyan-400' : ''}`}>Profil</button>
-            <button onClick={() => onSetSubPage('FULL_MENU')} className={`hover:text-cyan-400 transition-colors ${activeSubPage === 'FULL_MENU' ? 'text-cyan-400' : ''}`}>Menu Favorit</button>
-            <button onClick={() => onSetSubPage('CONTACT')} className={`hover:text-cyan-400 transition-colors ${activeSubPage === 'CONTACT' ? 'text-cyan-400' : ''}`}>Kontak</button>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 uppercase tracking-widest relative z-[101]">
+            {navItems.map((item) => (
+              <button 
+                key={item.id}
+                onClick={() => onSetSubPage(item.id)} 
+                className={`hover:text-cyan-400 transition-colors cursor-pointer ${activeSubPage === item.id ? 'text-cyan-400' : ''}`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-          <button 
-            onClick={onLoginClick}
-            className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs font-bold hover:border-cyan-500/50 hover:text-cyan-400 transition-all group"
-          >
-            <LogIn size={14} className="group-hover:translate-x-1 transition-transform" /> CREW LOGIN
-          </button>
+
+          <div className="flex items-center gap-4 relative z-[101]">
+            <button 
+              onClick={onLoginClick}
+              className="hidden sm:flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs font-bold hover:border-cyan-500/50 hover:text-cyan-400 transition-all group cursor-pointer"
+            >
+              <LogIn size={14} className="group-hover:translate-x-1 transition-transform" /> CREW LOGIN
+            </button>
+            
+            {/* Mobile Toggle */}
+            <button 
+              className="md:hidden p-2 text-slate-400 hover:text-white cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-20 left-0 w-full glass border-b border-slate-800 animate-in slide-in-from-top-5 duration-300 z-[99]">
+            <div className="flex flex-col p-6 space-y-4">
+              {navItems.map((item) => (
+                <button 
+                  key={item.id}
+                  onClick={() => onSetSubPage(item.id)} 
+                  className={`text-left text-sm font-bold uppercase tracking-widest py-2 transition-all cursor-pointer ${activeSubPage === item.id ? 'text-cyan-400 pl-2 border-l-2 border-cyan-400' : 'text-slate-500'}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+              <button 
+                onClick={onLoginClick}
+                className="flex items-center justify-center gap-2 px-6 py-4 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl text-xs font-bold text-cyan-400 cursor-pointer"
+              >
+                <LogIn size={14} /> CREW LOGIN
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Dynamic View Content */}
@@ -279,9 +329,9 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <p>© 2025 Bagindo Rajo - Powered by Resto-On OS v2.7</p>
           </div>
           <div className="flex gap-10 font-bold uppercase tracking-widest text-[10px] text-slate-500">
-            <button onClick={() => onSetSubPage('PROFILE')} className="hover:text-cyan-400 transition-colors">Privacy Policy</button>
-            <button onClick={() => onSetSubPage('CONTACT')} className="hover:text-cyan-400 transition-colors">Terms of Service</button>
-            <button onClick={() => onSetSubPage('PROFILE')} className="hover:text-cyan-400 transition-colors">Sitemap</button>
+            <button onClick={() => onSetSubPage('PROFILE')} className="hover:text-cyan-400 transition-colors cursor-pointer">Privacy Policy</button>
+            <button onClick={() => onSetSubPage('CONTACT')} className="hover:text-cyan-400 transition-colors cursor-pointer">Terms of Service</button>
+            <button onClick={() => onSetSubPage('PROFILE')} className="hover:text-cyan-400 transition-colors cursor-pointer">Sitemap</button>
           </div>
         </div>
       </footer>
