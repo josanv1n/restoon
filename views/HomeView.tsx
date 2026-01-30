@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
-// Added Plus to the imports from lucide-react
 import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus } from 'lucide-react';
 
 interface HomeViewProps {
@@ -29,7 +28,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
 
   const renderLanding = () => (
     <>
-      {/* Hero Section with Luxury Image Background */}
+      {/* Hero Section with Luxury Rendang & Jengkol Image Background */}
       <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
         {/* Background Image Container */}
         <div className="absolute inset-0 z-0">
@@ -37,8 +36,8 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40 z-10"></div>
           <img 
             src="https://images.unsplash.com/photo-1626074353765-517a681e40be?q=80&w=2070&auto=format&fit=crop" 
-            alt="Luxury Minang Cuisine" 
-            className="w-full h-full object-cover opacity-50 scale-110 animate-[ken-burns_20s_ease_infinite]"
+            alt="Luxury Rendang & Jengkol Balado" 
+            className="w-full h-full object-cover opacity-60 scale-110 animate-[ken-burns_20s_ease_infinite]"
           />
         </div>
 
@@ -79,7 +78,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
                     <ChefHat size={56} className="text-cyan-400" />
                   </div>
                   <h3 className="text-5xl font-bold tracking-tighter">Premium.<br/><span className="text-cyan-500">Authentic.</span></h3>
-                  <p className="text-slate-400 text-sm font-medium">Resep rahasia keluarga yang diwariskan dari generasi ke generasi, kini lebih mudah dipesan.</p>
+                  <p className="text-slate-400 text-sm font-medium">Resep rahasia keluarga yang diwariskan dari generasi ke generasi, kini lebih mewah.</p>
                   <div className="grid grid-cols-2 gap-4 w-full relative z-10">
                     <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 shadow-xl">
                       <p className="text-cyan-400 text-2xl font-bold">100%</p>
@@ -115,18 +114,22 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {menu.slice(0, 4).map((item) => (
-              <div key={item.id} className="glass p-8 rounded-[2.5rem] border-slate-800/50 hover:border-cyan-500/40 hover:-translate-y-2 transition-all duration-500 group cursor-pointer shadow-xl" onClick={onOrderOnline}>
-                <div className="flex justify-between items-start mb-6">
-                  <span className="text-[9px] font-black text-cyan-500 bg-cyan-500/10 px-3 py-1.5 rounded-full uppercase tracking-[0.2em] border border-cyan-500/20">{item.category}</span>
-                  <div className="text-yellow-500/40 group-hover:text-yellow-500 transition-colors">
-                    <Star size={18} fill="currentColor" />
-                  </div>
+              <div key={item.id} className="glass group p-0 rounded-[2.5rem] border-slate-800/50 hover:border-cyan-500/40 hover:-translate-y-2 transition-all duration-500 cursor-pointer shadow-xl overflow-hidden" onClick={onOrderOnline}>
+                <div className="relative h-48 overflow-hidden">
+                   <img src={item.imageUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={item.name} />
+                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent"></div>
+                   <span className="absolute top-4 left-4 text-[9px] font-black text-cyan-500 bg-slate-950/80 px-3 py-1.5 rounded-full uppercase tracking-[0.2em] border border-cyan-500/20">{item.category}</span>
                 </div>
-                <h3 className="text-xl font-bold group-hover:text-cyan-400 transition-colors mb-4 leading-tight">{item.name}</h3>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="font-mono font-bold text-2xl text-white">Rp {item.price.toLocaleString('id-ID')}</span>
-                  <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-cyan-500 group-hover:text-white transition-all shadow-lg">
-                    <Plus size={20} />
+                <div className="p-8 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-bold group-hover:text-cyan-400 transition-colors leading-tight">{item.name}</h3>
+                    <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-xl text-white">Rp {item.price.toLocaleString('id-ID')}</span>
+                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-cyan-500 group-hover:text-white transition-all shadow-lg">
+                      <Plus size={20} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -151,20 +154,26 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {menu.map((item) => (
-          <div key={item.id} className="glass p-10 rounded-[2.5rem] border-slate-800/50 flex flex-col justify-between hover:bg-cyan-500/5 transition-all group shadow-xl">
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <span className="text-[10px] bg-slate-800 px-4 py-1.5 rounded-full text-slate-400 font-bold uppercase tracking-[0.2em] border border-slate-700">{item.category}</span>
-                <Star className="text-yellow-500/30 group-hover:text-yellow-500 transition-colors" size={16} fill="currentColor" />
-              </div>
-              <h3 className="text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors">{item.name}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed font-medium">Sajian istimewa bumbu Minang asli yang diolah dengan resep rahasia keluarga selama puluhan tahun.</p>
+          <div key={item.id} className="glass rounded-[2.5rem] border-slate-800/50 flex flex-col hover:bg-cyan-500/5 transition-all group shadow-xl overflow-hidden">
+            <div className="relative h-56 overflow-hidden">
+               <img src={item.imageUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={item.name} />
+               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
+               <span className="absolute top-4 left-4 text-[10px] bg-slate-950/80 px-4 py-1.5 rounded-full text-slate-200 font-bold uppercase tracking-[0.2em] border border-slate-700">{item.category}</span>
             </div>
-            <div className="mt-10 flex items-center justify-between pt-8 border-t border-slate-800/50">
-              <span className="text-3xl font-bold font-mono text-cyan-400">Rp {item.price.toLocaleString('id-ID')}</span>
-              <button onClick={onOrderOnline} className="px-8 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl text-[10px] font-black text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all cursor-pointer uppercase tracking-widest shadow-lg active:scale-95">
-                ORDER NOW
-              </button>
+            <div className="p-10 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                   <h3 className="text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors">{item.name}</h3>
+                   <Star className="text-yellow-500" size={16} fill="currentColor" />
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed font-medium">Sajian istimewa bumbu Minang asli yang diolah dengan resep rahasia keluarga selama puluhan tahun.</p>
+              </div>
+              <div className="mt-10 flex items-center justify-between pt-8 border-t border-slate-800/50">
+                <span className="text-3xl font-bold font-mono text-cyan-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                <button onClick={onOrderOnline} className="px-8 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl text-[10px] font-black text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all cursor-pointer uppercase tracking-widest shadow-lg active:scale-95">
+                  ORDER NOW
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -192,8 +201,8 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <h4 className="text-cyan-400 font-bold uppercase tracking-[0.3em] flex items-center gap-3 text-xs">
               <span className="w-12 h-px bg-cyan-500"></span> Sejarah Kami
             </h4>
-            <p className="font-medium">Berdiri sejak tahun 1995 di pusat kota Padang, <span className="text-white">BAGINDO RAJO</span> memulai perjalanannya sebagai kedai kecil yang mengutamakan kualitas bahan terbaik dan keaslian bumbu rempah nusantara.</p>
-            <p className="font-medium">Kini, dengan dukungan sistem operasi <span className="text-cyan-400">Resto-On OS</span>, kami bertransformasi menjadi restoran masa depan tanpa meninggalkan akar budaya kami yang kental.</p>
+            <p className="font-medium">Berdiri sejak tahun 1995 di pusat kota Padang, <span className="text-white">BAGINDO RAJO</span> memulai perjalanannya sebagai kedai kecil yang mengutamakan kualitas bahan terbaik.</p>
+            <p className="font-medium">Kini, dengan dukungan sistem operasi <span className="text-cyan-400">Resto-On OS</span>, kami bertransformasi menjadi restoran masa depan.</p>
           </div>
           <div className="space-y-6">
             <h4 className="text-pink-400 font-bold uppercase tracking-[0.3em] flex items-center gap-3 text-xs">
@@ -202,7 +211,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <ul className="space-y-4">
               <li className="flex gap-4 items-start"><ChevronRight className="text-pink-400 shrink-0 mt-1" size={18} /> <span className="font-medium">Menyajikan hidangan Minang dengan standard kualitas gourmet internasional.</span></li>
               <li className="flex gap-4 items-start"><ChevronRight className="text-pink-400 shrink-0 mt-1" size={18} /> <span className="font-medium">Menjadi pemimpin digitalisasi industri kuliner tradisional Indonesia.</span></li>
-              <li className="flex gap-4 items-start"><ChevronRight className="text-pink-400 shrink-0 mt-1" size={18} /> <span className="font-medium">Memberikan pengalaman makan 'Kerajaan' bagi setiap tamu yang datang.</span></li>
             </ul>
           </div>
         </div>
