@@ -1,10 +1,9 @@
-
 import { MenuItem } from './types';
 
 // Optimization params for Unsplash
 const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
-// Logo Raw GitHub (Telah dikonversi dari link blob ke link raw untuk stabilitas crawler)
+// Logo Raw GitHub (Link permanen untuk preview WhatsApp)
 export const LOGO_URL = "https://raw.githubusercontent.com/josanvin/josanvin/main/img/logo-bagindo.png";
 
 export const INITIAL_MENU: MenuItem[] = [
