@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is missing.");
     
-    // Parameter optimasi gambar ultra rendah: q=20 (kualitas sangat rendah), w=300 (lebar kecil)
+    // Parameter optimasi gambar ultra rendah untuk kecepatan maksimal
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
     // 1. Create Tables
@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
     await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'Resto-On') ON CONFLICT (key) DO NOTHING`;
 
-    // 3. Data Seeding - Menggunakan ID Unsplash yang spesifik dan terverifikasi
+    // 3. Data Seeding - Menggunakan ID Unsplash Spesifik yang Lebih Menarik & Stabil
     const fullMenu = [
       { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1626074353765-517a681e40be' }, 
       { id: '2', name: 'Nasi + Ayam Goreng', price: 23000, cat: 'FOOD', img: '1626645738196-c2a7c87a8f58' },
@@ -38,11 +38,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { id: '9', name: 'Telur Dadar Barembo', price: 14000, cat: 'FOOD', img: '1525351484163-7529414344d8' },
       { id: '10', name: 'Sayur Nangka Kapau', price: 10000, cat: 'FOOD', img: '1512621776951-a57141f2eefd' },
       { id: '11', name: 'Jengkol Balado Luxury', price: 31000, cat: 'FOOD', img: '1563379091339-03b21ab4a4f8' },
-      { id: '12', name: 'Es Kelapa Muda (Dogan)', price: 15000, cat: 'DRINK', img: '1553530666-ba017056c0b5' }, // Fresh young coconut
+      { id: '12', name: 'Es Kelapa Muda (Dogan)', price: 15000, cat: 'DRINK', img: '1544145945-f904253d0c7b' }, // Glass of coconut water with ice and meat slices
       { id: '13', name: 'Es Teh Manis', price: 3000, cat: 'DRINK', img: '1556679343-c7306c1976bc' },
       { id: '14', name: 'Teh Hangat', price: 2000, cat: 'DRINK', img: '1564890369478-c89ca6d9cde9' },
       { id: '15', name: 'Es Jeruk Peras', price: 10000, cat: 'DRINK', img: '1613478223719-2ab802602423' },
-      { id: '16', name: 'Nasi Putih Hangat', price: 6000, cat: 'FOOD', img: '1536304993881-ff6e9eefa2a6' }, // White rice on plate
+      { id: '16', name: 'Nasi Putih Hangat', price: 6000, cat: 'FOOD', img: '1536304993881-ff6e9eefa2a6' }, // Steaming white rice on a plate
     ];
 
     for (const item of fullMenu) {
@@ -58,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Resto-On database updated with fresh coconut and plate rice visuals." });
+    return res.status(200).json({ success: true, message: "Resto-On database updated with Dogan and Plate Rice." });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

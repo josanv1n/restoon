@@ -16,7 +16,7 @@ export const INITIAL_MENU: MenuItem[] = [
   { id: '9', name: 'Telur Dadar Barembo', price: 14000, category: 'FOOD', stock: 100, imageUrl: `https://images.unsplash.com/photo-1525351484163-7529414344d8?${OPT}` },
   { id: '10', name: 'Sayur Nangka Kapau', price: 10000, category: 'FOOD', stock: 100, imageUrl: `https://images.unsplash.com/photo-1512621776951-a57141f2eefd?${OPT}` },
   { id: '11', name: 'Jengkol Balado Luxury', price: 31000, category: 'FOOD', stock: 100, imageUrl: `https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?${OPT}` },
-  { id: '12', name: 'Es Kelapa Muda (Dogan)', price: 15000, category: 'DRINK', stock: 100, imageUrl: `https://images.unsplash.com/photo-1553530666-ba017056c0b5?${OPT}` },
+  { id: '12', name: 'Es Kelapa Muda (Dogan)', price: 15000, category: 'DRINK', stock: 100, imageUrl: `https://images.unsplash.com/photo-1544145945-f904253d0c7b?${OPT}` },
   { id: '13', name: 'Es Teh Manis', price: 3000, category: 'DRINK', stock: 100, imageUrl: `https://images.unsplash.com/photo-1556679343-c7306c1976bc?${OPT}` },
   { id: '14', name: 'Teh Hangat', price: 2000, category: 'DRINK', stock: 100, imageUrl: `https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?${OPT}` },
   { id: '15', name: 'Es Jeruk Peras', price: 10000, category: 'DRINK', stock: 100, imageUrl: `https://images.unsplash.com/photo-1613478223719-2ab802602423?${OPT}` },
