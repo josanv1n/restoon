@@ -74,7 +74,6 @@ const App: React.FC = () => {
       console.error("Sync error:", err);
     } finally {
       setLoading(false);
-      // Berikan sedikit delay agar UI tidak berkedip terlalu cepat
       setTimeout(() => setSyncing(false), 800);
       isFetchingRef.current = false;
     }
@@ -86,7 +85,6 @@ const App: React.FC = () => {
       try { await fetch('/api/setup'); } catch (e) {}
     };
     runSetup();
-    // Interval ditingkatkan ke 30 detik untuk stabilitas commit/push
     const interval = setInterval(() => fetchData(), 30000); 
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -199,7 +197,7 @@ const App: React.FC = () => {
             <button onClick={() => setShowLogin(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
             <div className="text-center space-y-3">
               <div className="w-20 h-20 bg-cyan-500/5 rounded-3xl flex items-center justify-center mx-auto border border-cyan-500/10 shadow-2xl mb-2 overflow-hidden bg-slate-900">
-                 <img src={`${LOGO_URL}=s200`} alt="Logo" className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).style.display='none'} />
+                 <img src={LOGO_URL} alt="Logo" className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).style.display='none'} />
               </div>
               <h2 className="text-3xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">
                 {loginMode === 'STAFF' ? 'Secure Terminal' : loginMode === 'REGISTER' ? 'Join Resto-On' : 'Auth Protocol'}

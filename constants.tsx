@@ -4,8 +4,8 @@ import { MenuItem } from './types';
 // Optimization params for Unsplash
 const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
-// Link Logo Google Drive (Format lh3 jauh lebih stabil untuk deployment Vercel)
-export const LOGO_URL = "https://lh3.googleusercontent.com/d/1rnltv3RUb1gsT9IyzCTCR-_cr85FcZ-u";
+// Logo Raw GitHub (Telah dikonversi dari link blob ke link raw untuk stabilitas crawler)
+export const LOGO_URL = "https://raw.githubusercontent.com/josanvin/josanvin/main/img/logo-bagindo.png";
 
 export const INITIAL_MENU: MenuItem[] = [
   { id: '1', name: 'Nasi + Rendang', price: 26000, category: 'FOOD', stock: 100, imageUrl: `https://images.unsplash.com/photo-1626074353765-517a681e40be?${OPT}` },
