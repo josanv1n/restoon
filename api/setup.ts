@@ -10,10 +10,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is missing.");
     
-    // Parameter optimasi gambar ultra rendah untuk kecepatan maksimal
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
-    // 1. Create Tables
     await pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`;
@@ -21,11 +19,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`;
 
-    // 2. Initialize Settings
+    // Update branding to RM. Bagindo Rajo
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
-    await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'Resto-On') ON CONFLICT (key) DO NOTHING`;
+    await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'RM. Bagindo Rajo') ON CONFLICT (key) DO UPDATE SET value = 'RM. Bagindo Rajo'`;
 
-    // 3. Data Seeding - Menggunakan ID Unsplash Spesifik yang Lebih Menarik & Stabil
     const fullMenu = [
       { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1626074353765-517a681e40be' }, 
       { id: '2', name: 'Nasi + Ayam Goreng', price: 23000, cat: 'FOOD', img: '1626645738196-c2a7c87a8f58' },
@@ -38,11 +35,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { id: '9', name: 'Telur Dadar Barembo', price: 14000, cat: 'FOOD', img: '1525351484163-7529414344d8' },
       { id: '10', name: 'Sayur Nangka Kapau', price: 10000, cat: 'FOOD', img: '1512621776951-a57141f2eefd' },
       { id: '11', name: 'Jengkol Balado Luxury', price: 31000, cat: 'FOOD', img: '1563379091339-03b21ab4a4f8' },
-      { id: '12', name: 'Es Kelapa Muda (Dogan)', price: 15000, cat: 'DRINK', img: '1544145945-f904253d0c7b' }, // Glass of coconut water with ice and meat slices
+      { id: '12', name: 'Es Kelapa Muda (Dogan)', price: 15000, cat: 'DRINK', img: '1544145945-f904253d0c7b' },
       { id: '13', name: 'Es Teh Manis', price: 3000, cat: 'DRINK', img: '1556679343-c7306c1976bc' },
       { id: '14', name: 'Teh Hangat', price: 2000, cat: 'DRINK', img: '1564890369478-c89ca6d9cde9' },
       { id: '15', name: 'Es Jeruk Peras', price: 10000, cat: 'DRINK', img: '1613478223719-2ab802602423' },
-      { id: '16', name: 'Nasi Putih Hangat', price: 6000, cat: 'FOOD', img: '1536304993881-ff6e9eefa2a6' }, // Steaming white rice on a plate
+      { id: '16', name: 'Nasi Putih Hangat', price: 6000, cat: 'FOOD', img: '1536304993881-ff6e9eefa2a6' },
     ];
 
     for (const item of fullMenu) {
@@ -58,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Resto-On database updated with Dogan and Plate Rice." });
+    return res.status(200).json({ success: true, message: "Resto-On rebranded to RM. Bagindo Rajo." });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

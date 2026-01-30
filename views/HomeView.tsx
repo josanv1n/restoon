@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
 import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, UtensilsCrossed, Utensils } from 'lucide-react';
@@ -63,14 +64,14 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-20">
           <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-md">
-              <Star size={12} className="fill-cyan-400" /> Future Dining System
+              <Star size={12} className="fill-cyan-400" /> Masakan Padang Terenak & Terbaik
             </div>
             <h1 className="text-5xl md:text-8xl font-bold leading-tight tracking-tighter text-white">
-              The Future of <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 neon-text-cyan">Culinary Order.</span>
+              RM. <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 neon-text-cyan uppercase">Bagindo Rajo.</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-300 max-w-lg leading-relaxed font-medium">
-              Akses menu favorit Anda dengan kecepatan cahaya di <span className="text-white font-bold underline decoration-cyan-500">Resto-On</span>. Rasakan revolusi digital dalam setiap suapan.
+              Nikmati kelezatan masakan Padang otentik dengan layanan digital masa depan. <span className="text-white font-bold underline decoration-cyan-500">Terenak dan Terbaik</span> di kelasnya.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <button 
@@ -87,7 +88,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
       <section className="py-24 px-6 relative">
         <div className="max-w-7xl mx-auto space-y-16 relative z-10">
           <div className="space-y-4">
-            <h2 className="text-4xl md:text-5xl font-bold font-mono tracking-tighter uppercase neon-text-cyan">Favorit Pelanggan</h2>
+            <h2 className="text-4xl md:text-5xl font-bold font-mono tracking-tighter uppercase neon-text-cyan">Menu Unggulan</h2>
             <div className="w-24 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full"></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -126,7 +127,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         <button onClick={() => onSetSubPage('LANDING')} className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-cyan-400 transition-all cursor-pointer">
           <ArrowLeft size={20} />
         </button>
-        <h2 className="text-4xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">Menu Digital</h2>
+        <h2 className="text-4xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">Menu Digital RM. Bagindo Rajo</h2>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -160,8 +161,8 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
   const renderProfile = () => (
     <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-in fade-in duration-300">
       <div className="glass p-12 rounded-[3rem] border-slate-800 space-y-8 shadow-2xl relative overflow-hidden text-center">
-        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">Resto-On</h2>
-        <p className="text-xl text-slate-300 italic font-light">"Digital Dining Experience, Personalized."</p>
+        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">RM. Bagindo Rajo</h2>
+        <p className="text-xl text-slate-300 italic font-light">"Rumah Makan Padang Terenak dan Terbaik."</p>
       </div>
     </section>
   );
@@ -173,11 +174,10 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         
         <div className="space-y-3">
           <h2 className="text-4xl font-bold neon-text-cyan font-mono uppercase tracking-tighter">Hubungi Kami</h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Layanan Pelanggan Hub Johan.jkt999</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Layanan Pelanggan RM. Bagindo Rajo</p>
         </div>
 
         <div className="grid gap-4 md:gap-6">
-          {/* Email / ID Card */}
           <div className="flex items-center gap-6 p-6 bg-slate-900/40 rounded-3xl border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer group">
               <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20 group-hover:scale-110 transition-transform shadow-lg">
                 <Mail size={28} />
@@ -188,7 +188,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
               </div>
           </div>
 
-          {/* WhatsApp Card */}
           <a 
             href="https://wa.me/6281341300100" 
             target="_blank" 
@@ -229,8 +228,8 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
               <UtensilsCrossed size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tighter text-white neon-text-cyan">Resto-On</h1>
-              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Future Dining</p>
+              <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tighter text-white neon-text-cyan">RM. Bagindo Rajo</h1>
+              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Premium Padang Cuisine</p>
             </div>
           </div>
 
@@ -287,10 +286,10 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
           <div className="space-y-6">
              <div className="flex items-center gap-3">
                <UtensilsCrossed size={24} className="text-cyan-500" />
-               <h3 className="text-2xl font-bold font-mono tracking-tighter uppercase">Resto-On</h3>
+               <h3 className="text-2xl font-bold font-mono tracking-tighter uppercase">RM. Bagindo Rajo</h3>
              </div>
              <p className="text-sm text-slate-500 leading-relaxed">
-               Mendefinisikan ulang cara Anda bersantap melalui teknologi pesanan digital masa depan yang cepat dan efisien.
+               Mendefinisikan ulang cara Anda menikmati masakan Padang melalui teknologi pesanan digital masa depan yang cepat dan efisien.
              </p>
           </div>
           <div>
@@ -317,7 +316,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-900/50 flex flex-col md:flex-row justify-between items-center gap-6">
-           <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">&copy; 2025 Resto-On OS. All Rights Reserved.</p>
+           <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">&copy; 2025 RM. Bagindo Rajo OS. All Rights Reserved.</p>
            <div className="flex gap-8 text-[9px] font-black text-slate-600 uppercase tracking-widest">
               <a href="#" className="hover:text-cyan-500">Privacy Policy</a>
               <a href="#" className="hover:text-cyan-500">Terms of Service</a>

@@ -6,7 +6,7 @@ import { LayoutDashboard, Users, User, LogOut, ShoppingCart, Table as TableIcon,
 interface LayoutProps {
   children: React.ReactNode;
   activeRole: UserRole;
-  loggedRole: UserRole; // Role asli saat login untuk pembatasan menu
+  loggedRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   onLogout: () => void;
 }
@@ -20,41 +20,26 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
     { role: UserRole.MANAGEMENT, label: 'Management BI', icon: BarChart3 },
   ];
 
-  // Filtering Logic berdasarkan Level Access
   const sidebarItems = allSidebarItems.filter(item => {
-    if (loggedRole === UserRole.PELAYAN) {
-      // Pelayan hanya boleh lihat portal dan sistem pelayan
-      return item.role === UserRole.PELAYAN || item.role === UserRole.CUSTOMER;
-    }
-    if (loggedRole === UserRole.KASIR) {
-      // Kasir boleh lihat billing, sistem pelayan, dan portal
-      return item.role === UserRole.KASIR || item.role === UserRole.PELAYAN || item.role === UserRole.CUSTOMER;
-    }
-    if (loggedRole === UserRole.ADMIN) {
-      // Admin tidak melihat Management BI (BI hanya untuk owner/management)
-      return item.role !== UserRole.MANAGEMENT;
-    }
-    if (loggedRole === UserRole.MANAGEMENT) {
-      // Management melihat semuanya
-      return true;
-    }
-    // Default hanya portal (untuk customer)
+    if (loggedRole === UserRole.PELAYAN) return item.role === UserRole.PELAYAN || item.role === UserRole.CUSTOMER;
+    if (loggedRole === UserRole.KASIR) return item.role === UserRole.KASIR || item.role === UserRole.PELAYAN || item.role === UserRole.CUSTOMER;
+    if (loggedRole === UserRole.ADMIN) return item.role !== UserRole.MANAGEMENT;
+    if (loggedRole === UserRole.MANAGEMENT) return true;
     return item.role === UserRole.CUSTOMER;
   });
 
   return (
     <div className="min-h-screen flex bg-slate-950 text-slate-200 selection:bg-cyan-500 overflow-x-hidden">
-      {/* Sidebar - Responsive for Android/HP */}
       <aside className="w-16 sm:w-20 md:w-64 glass border-r border-slate-800/50 flex flex-col z-50 sticky top-0 h-screen shrink-0 shadow-2xl">
         <div className="p-4 sm:p-6 flex items-center gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border shadow-cyan-500/20 shrink-0">
             <UtensilsCrossed size={18} className="text-white" />
           </div>
           <div className="hidden md:block overflow-hidden">
-             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 neon-text-cyan font-mono tracking-tighter truncate">
-              Resto-On
+             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 neon-text-cyan font-mono tracking-tighter truncate uppercase">
+              Bagindo Rajo
             </h1>
-            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-[0.2em]">OS v2.7 PRO</p>
+            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-[0.2em]">RM v3.0 PRO</p>
           </div>
         </div>
 
@@ -100,7 +85,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <main className="flex-1 relative overflow-y-auto custom-scrollbar bg-slate-950">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_#1e293b_0%,_transparent_50%)] opacity-20 pointer-events-none"></div>
         <div className="p-4 sm:p-6 md:p-10 relative">
