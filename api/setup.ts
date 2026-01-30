@@ -12,7 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
-    // Atomic Table Creation
+    // 1. Pastikan Tabel Tersedia
     await Promise.all([
       pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`,
@@ -22,10 +22,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`
     ]);
 
-    // Re-branding verification
+    // 2. Default Settings (Gunakan DO NOTHING agar tidak menimpa setting manual)
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
-    await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'RM. Bagindo Rajo') ON CONFLICT (key) DO UPDATE SET value = 'RM. Bagindo Rajo'`;
+    await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'RM. Bagindo Rajo') ON CONFLICT (key) DO NOTHING`;
 
+    // 3. Initial Seeding Menu
+    // Kuncinya adalah ON CONFLICT (id) DO NOTHING. 
+    // Ini berarti jika menu dengan ID tersebut sudah ada, database akan mengabaikan perintah insert ini
+    // dan mempertahankan data yang sudah ada (termasuk hasil update manual Anda).
     const fullMenu = [
       { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1626074353765-517a681e40be' }, 
       { id: '2', name: 'Nasi + Ayam Goreng', price: 23000, cat: 'FOOD', img: '1626645738196-c2a7c87a8f58' },
@@ -50,16 +54,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await pool.sql`
         INSERT INTO menu_items (id, name, category, price, stock, image_url)
         VALUES (${item.id}, ${item.name}, ${item.cat}, ${item.price}, 100, ${imageUrl})
-        ON CONFLICT (id) DO UPDATE SET 
-          image_url = EXCLUDED.image_url,
-          name = EXCLUDED.name,
-          category = EXCLUDED.category,
-          price = EXCLUDED.price
+        ON CONFLICT (id) DO NOTHING
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Database restoon initialized." });
+    return res.status(200).json({ success: true, message: "Database restoon initialized without overwriting existing data." });
   } catch (error: any) {
+    console.error("Setup Error:", error);
     return res.status(500).json({ error: error.message });
   }
 }
