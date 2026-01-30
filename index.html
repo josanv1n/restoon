@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,14 +23,14 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .neon-border {
-      box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+      box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
       border: 1px solid rgba(34, 211, 238, 0.5);
     }
     .neon-text-cyan {
-      text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+      text-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
     }
     .neon-text-pink {
-      text-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
+      text-shadow: 0 0 12px rgba(236, 72, 153, 0.8);
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
@@ -43,6 +44,12 @@
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #334155;
+    }
+    
+    @keyframes ken-burns {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15) translate(1%, 1%); }
+      100% { transform: scale(1); }
     }
   </style>
 <script type="importmap">
