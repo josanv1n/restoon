@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Order, OrderStatus, OrderType, MenuItem, OrderItem } from '../types';
 import { TABLES_COUNT } from '../constants';
-import { Coffee, CheckCircle2, Clock, MapPin, Send, Plus, Minus, Search, ListPlus } from 'lucide-react';
+import { Coffee, CheckCircle2, Clock, MapPin, Send, Plus, Minus, Search, ListPlus, Loader2 } from 'lucide-react';
 
 interface WaiterViewProps {
   menu: MenuItem[];
@@ -15,6 +15,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Find active orders (unpaid) to determine table occupancy
   const tableStatus = Array.from({ length: TABLES_COUNT }, (_, i) => {
@@ -22,7 +23,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
     const activeOrder = orders.find(o => 
       o.tableNumber === tableNum && 
       o.paymentStatus === 'UNPAID' && 
-      o.status !== OrderStatus.CANCELLED
+      (o.status === OrderStatus.PENDING || o.status === OrderStatus.PREPARING || o.status === OrderStatus.SERVED)
     );
     return {
       number: tableNum,
@@ -55,14 +56,14 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
 
   const handleSubmitOrder = async () => {
     if (!selectedTable || cart.length === 0) return;
+    setIsSubmitting(true);
 
-    if (isAppending && selectedTableData?.activeOrder) {
-      // Logic for appending to existing order
-      const currentOrder = selectedTableData.activeOrder;
-      const updatedItems = [...currentOrder.items, ...cart];
-      const updatedTotal = updatedItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
-      
-      try {
+    try {
+      if (isAppending && selectedTableData?.activeOrder) {
+        const currentOrder = selectedTableData.activeOrder;
+        const updatedItems = [...currentOrder.items, ...cart];
+        const updatedTotal = updatedItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+        
         const res = await fetch('/api/orders', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -73,31 +74,33 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
           })
         });
         if (res.ok) {
-          alert(`Pesanan berhasil ditambahkan ke Meja ${selectedTable}`);
+          alert(`Pesanan Meja ${selectedTable} Berhasil Ditambahkan.`);
           setCart([]);
           setSelectedTable(null);
-          // Trigger a refresh of the parent state would be ideal here via window refresh or context
-          window.location.reload(); 
+          // Instead of reload, trigger a global refresh via status change or similar mechanism if needed
+          // For now, we rely on the parent's recurring sync or manual refresh
+          window.dispatchEvent(new CustomEvent('refreshData'));
         }
-      } catch (err) {
-        alert("Gagal memperbarui pesanan.");
+      } else {
+        const newOrder: Order = {
+          id: Math.random().toString(36).substr(2, 9),
+          type: OrderType.DINE_IN,
+          tableNumber: selectedTable,
+          items: cart,
+          total: cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0),
+          status: OrderStatus.PENDING,
+          createdAt: Date.now(),
+          paymentStatus: 'UNPAID',
+          origin: 'OFFLINE'
+        };
+        await onPlaceOrder(newOrder);
+        setCart([]);
+        setSelectedTable(null);
       }
-    } else {
-      // Logic for new order
-      const newOrder: Order = {
-        id: Math.random().toString(36).substr(2, 9),
-        type: OrderType.DINE_IN,
-        tableNumber: selectedTable,
-        items: cart,
-        total: cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0),
-        status: OrderStatus.PENDING,
-        createdAt: Date.now(),
-        paymentStatus: 'UNPAID',
-        origin: 'OFFLINE'
-      };
-      onPlaceOrder(newOrder);
-      setCart([]);
-      setSelectedTable(null);
+    } catch (err) {
+      alert("Gagal memproses pesanan.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -117,7 +120,6 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        {/* Left: Table Selection */}
         <div className="xl:col-span-3 space-y-6">
           <h3 className="text-xs font-bold flex items-center gap-2 uppercase tracking-[0.2em] text-slate-500">
             <MapPin size={14} className="text-cyan-500" /> Status Meja
@@ -126,6 +128,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
             {tableStatus.map((table) => (
               <button 
                 key={table.number}
+                disabled={isSubmitting}
                 onClick={() => setSelectedTable(table.number)}
                 className={`aspect-square flex flex-col items-center justify-center rounded-2xl border transition-all relative overflow-hidden group ${
                   selectedTable === table.number 
@@ -145,13 +148,8 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
               </button>
             ))}
           </div>
-          <div className="p-4 bg-slate-900/50 rounded-2xl border border-slate-800 text-[10px] text-slate-500 space-y-2">
-            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-cyan-500"></div> Meja Terisi (Belum Bayar)</div>
-            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-slate-800"></div> Meja Kosong</div>
-          </div>
         </div>
 
-        {/* Center: Menu Recording */}
         <div className="xl:col-span-6 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 className="text-xs font-bold flex items-center gap-2 uppercase tracking-[0.2em] text-slate-500">
@@ -198,7 +196,6 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
           </div>
         </div>
 
-        {/* Right: Digital Bill & Submission */}
         <div className="xl:col-span-3">
           <div className="glass rounded-[2.5rem] border border-slate-800 p-8 sticky top-6 space-y-6 shadow-2xl shadow-cyan-500/5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -215,21 +212,13 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
                 <span className="text-[10px] text-slate-500 font-bold uppercase">Target Meja</span>
                 <span className="text-sm font-mono font-bold text-cyan-400">{selectedTable ? `MEJA ${selectedTable}` : 'SELECT TABLE'}</span>
               </div>
-              
               <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar border-b border-slate-800/50 pb-4">
-                {cart.length === 0 ? (
-                  <div className="py-12 text-center space-y-2 opacity-30">
-                    <ListPlus className="mx-auto" size={24} />
-                    <p className="text-[10px] uppercase font-bold tracking-widest">Keranjang Kosong</p>
-                  </div>
-                ) : (
-                  cart.map(item => (
+                {cart.map(item => (
                     <div key={item.id} className="flex justify-between items-start text-xs animate-in slide-in-from-right-2">
                       <p className="flex-1"><span className="text-cyan-500 font-mono font-bold mr-1">{item.quantity}x</span> {item.name}</p>
                       <p className="font-mono text-slate-400">Rp {(item.price * item.quantity).toLocaleString()}</p>
                     </div>
-                  ))
-                )}
+                ))}
               </div>
             </div>
 
@@ -243,22 +232,16 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, onU
               
               <button 
                 onClick={handleSubmitOrder}
-                disabled={!selectedTable || cart.length === 0}
+                disabled={!selectedTable || cart.length === 0 || isSubmitting}
                 className={`w-full py-5 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all ${
-                  selectedTable && cart.length > 0
+                  selectedTable && cart.length > 0 && !isSubmitting
                     ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-xl shadow-cyan-500/20 hover:scale-[1.02]'
                     : 'bg-slate-900 text-slate-700 cursor-not-allowed border border-slate-800'
                 }`}
               >
-                {isAppending ? <ListPlus size={18} /> : <Send size={18} />}
-                {isAppending ? `TAMBAH KE MEJA ${selectedTable}` : `KIRIM KE KASIR`}
+                {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : (isAppending ? <ListPlus size={18} /> : <Send size={18} />)}
+                {isSubmitting ? 'SENDING...' : (isAppending ? `UPDATE MEJA ${selectedTable}` : `KIRIM KE KASIR`)}
               </button>
-              
-              {isAppending && (
-                <p className="text-[9px] text-center text-orange-400/70 italic">
-                  * Item akan ditambahkan ke tagihan Meja {selectedTable} yang sudah ada.
-                </p>
-              )}
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UserRole, Order, OrderStatus, PaymentMethod, MenuItem, AppSettings } from './types';
 import { INITIAL_MENU } from './constants';
 import Layout from './components/Layout';
@@ -21,13 +21,12 @@ const App: React.FC = () => {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  const fetchInitialData = async () => {
-    setLoading(true);
+  const fetchInitialData = useCallback(async (showFullLoader = false) => {
+    if (showFullLoader) setLoading(true);
+    else setSyncing(true);
+    
     try {
       const [orderRes, menuRes, settingsRes] = await Promise.all([
         fetch('/api/orders'),
@@ -35,7 +34,10 @@ const App: React.FC = () => {
         fetch('/api/settings')
       ]);
       
-      if (orderRes.ok) setOrders(await orderRes.json());
+      if (orderRes.ok) {
+        const data = await orderRes.json();
+        setOrders(data);
+      }
       if (menuRes.ok) {
         const remoteMenu = await menuRes.json();
         if (remoteMenu && remoteMenu.length > 0) {
@@ -47,8 +49,25 @@ const App: React.FC = () => {
       console.error("Failed to fetch initial data:", err);
     } finally {
       setLoading(false);
+      setSyncing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchInitialData(true);
+    
+    // Auto-sync every 15 seconds to keep Waiter and Cashier aligned
+    const interval = setInterval(() => fetchInitialData(), 15000);
+    
+    // Listen for manual refresh events from sub-views
+    const handleManualRefresh = () => fetchInitialData();
+    window.addEventListener('refreshData', handleManualRefresh);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('refreshData', handleManualRefresh);
+    };
+  }, [fetchInitialData]);
 
   const handlePlaceOrder = async (newOrder: Order) => {
     setLoading(true);
@@ -60,8 +79,7 @@ const App: React.FC = () => {
         body: JSON.stringify({ ...newOrder, origin })
       });
       if (res.ok) {
-        setOrders(prev => [newOrder, ...prev]);
-        fetchInitialData(); 
+        await fetchInitialData(); 
       }
     } catch (err) {
       alert("Gagal mengirim pesanan.");
@@ -98,12 +116,7 @@ const App: React.FC = () => {
         })
       });
       if (res.ok) {
-        setOrders(prev => prev.map(o => o.id === orderId ? { 
-          ...o, 
-          paymentStatus: 'PAID', 
-          status: OrderStatus.PAID,
-          paymentMethod: method 
-        } : o));
+        await fetchInitialData();
       }
     } catch (err) {
       console.error("Payment failed:", err);
@@ -113,7 +126,7 @@ const App: React.FC = () => {
   const handleLogin = (role: UserRole) => {
     setActiveRole(role);
     setShowLogin(false);
-    setGuestView('LANDING'); // Reset guest view
+    setGuestView('LANDING');
   };
 
   const renderActiveView = () => {
@@ -125,7 +138,7 @@ const App: React.FC = () => {
       case UserRole.KASIR:
         return <CashierView orders={orders} onProcessPayment={handleProcessPayment} />;
       case UserRole.ADMIN:
-        return <AdminView menu={menu} onMenuUpdate={fetchInitialData} settings={settings} />;
+        return <AdminView menu={menu} onMenuUpdate={() => fetchInitialData(true)} settings={settings} />;
       case UserRole.MANAGEMENT:
         return <ManagementView orders={orders} />;
       default:
@@ -190,14 +203,22 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {loading && (
-          <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-xs font-bold animate-pulse">
-            <Loader2 size={14} className="animate-spin" /> LIVE SYNC ACTIVE...
+        {syncing && (
+          <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[10px] font-bold animate-pulse">
+            <Loader2 size={12} className="animate-spin" /> SYNCING DATA...
           </div>
         )}
-        <div className="animate-in fade-in slide-in-from-right-10 duration-500">
-          {renderActiveView()}
-        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+             <Loader2 size={48} className="animate-spin text-cyan-500" />
+             <p className="text-sm font-bold uppercase tracking-[0.3em] text-slate-500 animate-pulse">Initializing System...</p>
+          </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-right-10 duration-500">
+            {renderActiveView()}
+          </div>
+        )}
       </div>
     </Layout>
   );

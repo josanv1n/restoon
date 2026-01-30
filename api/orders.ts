@@ -10,11 +10,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     try {
       const { rows } = await pool.sql`SELECT * FROM orders ORDER BY created_at DESC LIMIT 100`;
-      // Parse items string to JSON
+      // Map database snake_case to frontend camelCase
       const orders = rows.map(row => ({
-        ...row,
+        id: row.id,
+        type: row.type,
+        tableNumber: row.table_number,
         items: JSON.parse(row.items),
-        createdAt: Number(row.created_at)
+        total: Number(row.total),
+        status: row.status,
+        createdAt: Number(row.created_at),
+        paymentStatus: row.payment_status,
+        paymentMethod: row.payment_method,
+        origin: row.origin
       }));
       return res.status(200).json(orders);
     } catch (error) {
@@ -41,7 +48,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, status, paymentStatus, paymentMethod, items, total } = req.body;
       
       if (items !== undefined && total !== undefined) {
-        // Support for appending items to an existing order
         const itemsJson = JSON.stringify(items);
         await pool.sql`
           UPDATE orders 
@@ -49,14 +55,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           WHERE id = ${id}
         `;
       } else if (paymentStatus) {
-        // Standard payment/closing update
         await pool.sql`
           UPDATE orders 
           SET status = ${status}, payment_status = ${paymentStatus}, payment_method = ${paymentMethod}
           WHERE id = ${id}
         `;
       } else if (status) {
-        // Simple status change
         await pool.sql`
           UPDATE orders SET status = ${status} WHERE id = ${id}
         `;
