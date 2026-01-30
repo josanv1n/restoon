@@ -16,7 +16,6 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [homeSubPage, setHomeSubPage] = useState<'LANDING' | 'FULL_MENU' | 'PROFILE' | 'CONTACT'>('LANDING');
   
-  // Cache-First State: Load from localStorage if available
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem('restoon_orders');
     return saved ? JSON.parse(saved) : [];
@@ -81,17 +80,11 @@ const App: React.FC = () => {
   }, [menu.length]);
 
   useEffect(() => {
-    // 1. Jalankan sinkronisasi data segera
     fetchData(true);
-
-    // 2. Jalankan setup secara background (Non-blocking)
-    // Hanya jika aplikasi belum pernah dijalankan sebelumnya (opsional)
     const runSetup = async () => {
       try { await fetch('/api/setup'); } catch (e) {}
     };
     runSetup();
-
-    // 3. Polling interval lebih lama (15 detik) untuk mengurangi beban server
     const interval = setInterval(() => fetchData(), 15000); 
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -107,8 +100,9 @@ const App: React.FC = () => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setCurrentUser(data.user);
-        setActiveRole(data.user.role || UserRole.CUSTOMER);
+        const user = { ...data.user, role: data.user.role || UserRole.CUSTOMER };
+        setCurrentUser(user);
+        setActiveRole(user.role);
         setShowLogin(false);
         setUsername('');
         setPassword('');
@@ -159,21 +153,25 @@ const App: React.FC = () => {
   };
 
   const renderRoleView = () => {
-    switch (activeRole) {
-      case UserRole.GUEST: 
-        return <HomeView menu={menu} onLoginClick={() => { setLoginMode('STAFF'); setShowLogin(true); }} onOrderOnline={() => { setLoginMode('CUSTOMER'); setShowLogin(true); }} activeSubPage={homeSubPage} onSetSubPage={setHomeSubPage} />;
-      case UserRole.CUSTOMER: 
-        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} /></Layout>;
-      case UserRole.PELAYAN: 
-        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} /></Layout>;
-      case UserRole.KASIR: 
-        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><CashierView orders={orders} onProcessPayment={handleProcessPayment} /></Layout>;
-      case UserRole.ADMIN: 
-        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><AdminView menu={menu} onMenuUpdate={() => fetchData()} settings={settings} /></Layout>;
-      case UserRole.MANAGEMENT: 
-        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><ManagementView orders={orders} /></Layout>;
-      default: return null;
+    if (activeRole === UserRole.GUEST) {
+      return <HomeView menu={menu} onLoginClick={() => { setLoginMode('STAFF'); setShowLogin(true); }} onOrderOnline={() => { setLoginMode('CUSTOMER'); setShowLogin(true); }} activeSubPage={homeSubPage} onSetSubPage={setHomeSubPage} />;
     }
+
+    // Wrap views in Layout with filtered sidebar
+    return (
+      <Layout 
+        activeRole={activeRole} 
+        loggedRole={currentUser?.role || UserRole.CUSTOMER}
+        onRoleChange={setActiveRole} 
+        onLogout={() => { setActiveRole(UserRole.GUEST); setCurrentUser(null); }}
+      >
+        {activeRole === UserRole.CUSTOMER && <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} />}
+        {activeRole === UserRole.PELAYAN && <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} />}
+        {activeRole === UserRole.KASIR && <CashierView orders={orders} onProcessPayment={handleProcessPayment} />}
+        {activeRole === UserRole.ADMIN && <AdminView menu={menu} onMenuUpdate={() => fetchData()} settings={settings} />}
+        {activeRole === UserRole.MANAGEMENT && <ManagementView orders={orders} />}
+      </Layout>
+    );
   };
 
   return (
