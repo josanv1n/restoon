@@ -50,9 +50,11 @@ export interface Order {
   items: OrderItem[];
   total: number;
   createdAt: number;
+  orderDate?: string;
   paymentMethod?: PaymentMethod;
   paymentStatus: 'UNPAID' | 'PAID';
   origin: 'OFFLINE' | 'ONLINE';
+  customerId?: string;
 }
 
 export interface UserAccount {
@@ -60,6 +62,24 @@ export interface UserAccount {
   username: string;
   role: UserRole;
   password?: string;
+  name: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  password?: string;
+}
+
+export interface Transaction {
+  id: string;
+  orderId: string;
+  amount: number;
+  paymentMethod: string;
+  createdAt: number;
+  transactionDate: string;
 }
 
 export interface AppSettings {

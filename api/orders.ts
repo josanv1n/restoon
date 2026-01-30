@@ -19,16 +19,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total: Number(row.total),
         status: row.status,
         createdAt: Number(row.created_at),
+        orderDate: row.order_date,
         paymentStatus: row.payment_status || 'UNPAID',
         paymentMethod: row.payment_method,
-        origin: row.origin || 'OFFLINE'
+        origin: row.origin || 'OFFLINE',
+        customerId: row.customer_id
       }));
       
       return res.status(200).json(orders);
     }
 
     if (req.method === 'POST') {
-      const { id, type, tableNumber, items, total, status, createdAt, paymentStatus, origin } = req.body;
+      const { id, type, tableNumber, items, total, status, createdAt, paymentStatus, origin, customerId } = req.body;
       
       const itemsJson = JSON.stringify(items);
       const pStatus = (paymentStatus || 'UNPAID').toUpperCase();
@@ -37,10 +39,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const tNum = tableNumber ? Number(tableNumber) : null;
       const oTotal = Number(total);
       const oTime = createdAt ? Number(createdAt) : Date.now();
+      const oDate = new Date(oTime).toISOString().split('T')[0];
 
       await pool.sql`
-        INSERT INTO orders (id, type, table_number, items, total, status, created_at, payment_status, origin)
-        VALUES (${id}, ${oType}, ${tNum}, ${itemsJson}, ${oTotal}, ${status || 'PENDING'}, ${oTime}, ${pStatus}, ${oOrigin})
+        INSERT INTO orders (id, type, table_number, items, total, status, created_at, order_date, payment_status, origin, customer_id)
+        VALUES (${id}, ${oType}, ${tNum}, ${itemsJson}, ${oTotal}, ${status || 'PENDING'}, ${oTime}, ${oDate}, ${pStatus}, ${oOrigin}, ${customerId || null})
       `;
       
       return res.status(201).json({ success: true, message: "Order stored" });
@@ -52,11 +55,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (items !== undefined && total !== undefined) {
         const itemsJson = JSON.stringify(items);
         await pool.sql`UPDATE orders SET items = ${itemsJson}, total = ${Number(total)} WHERE id = ${id}`;
-      } else if (paymentStatus) {
+      } else if (paymentStatus === 'PAID') {
+        // Atomic Update & Transaction record
+        const now = Date.now();
+        const date = new Date(now).toISOString().split('T')[0];
+        
+        // Get order details first for the transaction log
+        const { rows } = await pool.sql`SELECT total FROM orders WHERE id = ${id}`;
+        const amount = rows[0]?.total || 0;
+
         await pool.sql`
           UPDATE orders 
-          SET status = ${status || 'PAID'}, payment_status = ${paymentStatus}, payment_method = ${paymentMethod}
+          SET status = 'PAID', payment_status = 'PAID', payment_method = ${paymentMethod}
           WHERE id = ${id}
+        `;
+
+        await pool.sql`
+          INSERT INTO transactions (id, order_id, amount, payment_method, created_at, transaction_date)
+          VALUES (${'TX-' + id}, ${id}, ${amount}, ${paymentMethod}, ${now}, ${date})
         `;
       } else if (status) {
         await pool.sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;

@@ -12,7 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error("POSTGRES_URL is missing.");
     }
 
-    // 1. Create Tables if they don't exist
+    // 1. Core Tables
     await pool.sql`
       CREATE TABLE IF NOT EXISTS orders (
         id TEXT PRIMARY KEY,
@@ -22,16 +22,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total NUMERIC NOT NULL,
         status TEXT NOT NULL,
         created_at BIGINT NOT NULL,
+        order_date TEXT,
         payment_status TEXT NOT NULL DEFAULT 'UNPAID',
         payment_method TEXT,
-        origin TEXT DEFAULT 'OFFLINE'
+        origin TEXT DEFAULT 'OFFLINE',
+        customer_id TEXT
       );
     `;
 
-    // 2. Migration: Ensure columns exist in case table was created with old schema
-    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'UNPAID'`; } catch(e) {}
-    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS origin TEXT DEFAULT 'OFFLINE'`; } catch(e) {}
-    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'DINE_IN'`; } catch(e) {}
+    await pool.sql`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id TEXT PRIMARY KEY,
+        order_id TEXT NOT NULL,
+        amount NUMERIC NOT NULL,
+        payment_method TEXT NOT NULL,
+        created_at BIGINT NOT NULL,
+        transaction_date TEXT NOT NULL
+      );
+    `;
+
+    await pool.sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL,
+        name TEXT NOT NULL
+      );
+    `;
+
+    await pool.sql`
+      CREATE TABLE IF NOT EXISTS customers (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        name TEXT NOT NULL,
+        phone TEXT
+      );
+    `;
+
+    // 2. Migration: Update existing tables
+    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_date TEXT`; } catch(e) {}
+    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id TEXT`; } catch(e) {}
+
+    // 3. Default Admin Account (Username: admin, Pass: admin123)
+    const { rowCount: userCount } = await pool.sql`SELECT * FROM users WHERE username = 'admin'`;
+    if (userCount === 0) {
+      await pool.sql`
+        INSERT INTO users (id, username, password, role, name)
+        VALUES ('1', 'admin', 'admin123', 'ADMIN', 'Super Admin')
+      `;
+      // Default Staff for Testing
+      await pool.sql`INSERT INTO users (id, username, password, role, name) VALUES ('2', 'pelayan1', '12345', 'PELAYAN', 'Budi Waiter') ON CONFLICT DO NOTHING`;
+      await pool.sql`INSERT INTO users (id, username, password, role, name) VALUES ('3', 'kasir1', '12345', 'KASIR', 'Siti Cashier') ON CONFLICT DO NOTHING`;
+    }
 
     await pool.sql`
       CREATE TABLE IF NOT EXISTS menu_items (
@@ -50,7 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     `;
 
-    // Seeding menu items
+    // Seeding menu items if empty
     const { rowCount: menuCount } = await pool.sql`SELECT * FROM menu_items LIMIT 1`;
     if (menuCount === 0) {
       await pool.sql`
@@ -73,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
     
-    return res.status(200).json({ status: "Success", message: "Database Resto-On v2.8 Ready." });
+    return res.status(200).json({ status: "Success", message: "Database Resto-On v3.0 (Auth Ready) Upgraded." });
   } catch (error) {
     return res.status(500).json({ status: "Error", message: error.message });
   }
