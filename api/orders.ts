@@ -10,21 +10,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     try {
       const { rows } = await pool.sql`SELECT * FROM orders ORDER BY created_at DESC LIMIT 100`;
-      // Map database snake_case to frontend camelCase
+      
+      // Map database snake_case to frontend camelCase dengan validasi tipe
       const orders = rows.map(row => ({
         id: row.id,
         type: row.type,
-        tableNumber: row.table_number,
-        items: JSON.parse(row.items),
+        tableNumber: row.table_number !== null ? Number(row.table_number) : undefined,
+        items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items,
         total: Number(row.total),
         status: row.status,
         createdAt: Number(row.created_at),
-        paymentStatus: row.payment_status,
+        paymentStatus: row.payment_status || 'UNPAID',
         paymentMethod: row.payment_method,
-        origin: row.origin
+        origin: row.origin || 'OFFLINE'
       }));
+      
       return res.status(200).json(orders);
     } catch (error) {
+      console.error("API GET Error:", error);
       return res.status(500).json({ error: error.message });
     }
   }
@@ -33,12 +36,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const { id, type, tableNumber, items, total, status, createdAt, paymentStatus, origin } = req.body;
       const itemsJson = JSON.stringify(items);
+      
       await pool.sql`
         INSERT INTO orders (id, type, table_number, items, total, status, created_at, payment_status, origin)
-        VALUES (${id}, ${type}, ${tableNumber || null}, ${itemsJson}, ${total}, ${status}, ${createdAt}, ${paymentStatus}, ${origin || 'OFFLINE'})
+        VALUES (${id}, ${type}, ${tableNumber || null}, ${itemsJson}, ${total}, ${status}, ${createdAt}, ${paymentStatus || 'UNPAID'}, ${origin || 'OFFLINE'})
       `;
+      
       return res.status(201).json({ success: true });
     } catch (error) {
+      console.error("API POST Error:", error);
       return res.status(500).json({ error: error.message });
     }
   }
@@ -67,6 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       return res.status(200).json({ success: true });
     } catch (error) {
+      console.error("API PATCH Error:", error);
       return res.status(500).json({ error: error.message });
     }
   }

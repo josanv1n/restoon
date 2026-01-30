@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserRole, Order, OrderStatus, PaymentMethod, MenuItem, AppSettings } from './types';
 import { INITIAL_MENU } from './constants';
@@ -38,11 +39,16 @@ const App: React.FC = () => {
       
       if (orderRes.ok) {
         const data = await orderRes.json();
-        setOrders(data);
+        // Pastikan data yang diterima adalah array
+        if (Array.isArray(data)) {
+          setOrders(data);
+        }
       }
       if (menuRes.ok) {
         const remoteMenu = await menuRes.json();
-        if (remoteMenu && remoteMenu.length > 0) setMenu(remoteMenu);
+        if (remoteMenu && Array.isArray(remoteMenu) && remoteMenu.length > 0) {
+          setMenu(remoteMenu);
+        }
       }
       if (settingsRes.ok) setSettings(await settingsRes.json());
     } catch (err) {
@@ -56,9 +62,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     fetchData(true);
+    // Poll data setiap 3 detik agar sinkronisasi Pelayan -> Kasir terasa real-time
     const interval = setInterval(() => {
       fetchData();
-    }, 15000); 
+    }, 3000); 
 
     const handleRefresh = () => fetchData();
     window.addEventListener('refreshData', handleRefresh);
@@ -77,7 +84,10 @@ const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder)
       });
-      if (res.ok) await fetchData();
+      if (res.ok) {
+        // Langsung fetch ulang setelah order berhasil
+        await fetchData();
+      }
     } catch (err) {
       alert("Gagal mengirim pesanan.");
     } finally {
@@ -133,15 +143,15 @@ const App: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       {syncing && (
-        <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[10px] font-bold animate-pulse">
-          <Loader2 size={12} className="animate-spin" /> SYNCING...
+        <div className="fixed top-6 right-6 z-[100] glass px-3 py-1.5 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[9px] font-bold animate-pulse shadow-lg shadow-cyan-500/10">
+          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div> LIVE SYNC
         </div>
       )}
       
       {loading ? (
         <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-slate-950">
            <Loader2 size={48} className="animate-spin text-cyan-500" />
-           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing System...</p>
+           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing Resto-On OS...</p>
         </div>
       ) : (
         <div className="animate-in fade-in duration-500">
@@ -153,7 +163,7 @@ const App: React.FC = () => {
       {showLogin && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
-          <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6 shadow-2xl shadow-cyan-500/10">
+          <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6 shadow-2xl shadow-cyan-500/10 animate-in zoom-in-95 duration-300">
             <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold neon-text-cyan">Crew Access</h2>
