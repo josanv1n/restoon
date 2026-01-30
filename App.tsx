@@ -13,6 +13,7 @@ import { Loader2, X, ChevronRight } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<UserRole>(UserRole.GUEST);
+  const [homeSubPage, setHomeSubPage] = useState<'LANDING' | 'FULL_MENU' | 'PROFILE' | 'CONTACT'>('LANDING');
   const [orders, setOrders] = useState<Order[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>(INITIAL_MENU);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -20,7 +21,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   
-  // Menggunakan Ref untuk mencegah race condition (looping fetch)
   const isFetchingRef = useRef(false);
 
   const fetchData = useCallback(async (isFullLoad = false) => {
@@ -56,10 +56,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Jalankan load pertama kali
     fetchData(true);
-    
-    // Set interval sinkronisasi
     const interval = setInterval(() => {
       fetchData();
     }, 15000); 
@@ -124,14 +121,14 @@ const App: React.FC = () => {
         menu={menu} 
         onLoginClick={() => setShowLogin(true)} 
         onOrderOnline={() => setActiveRole(UserRole.CUSTOMER)}
-        activeSubPage="LANDING"
-        onSetSubPage={() => {}}
+        activeSubPage={homeSubPage}
+        onSetSubPage={setHomeSubPage}
       />
     );
   }
 
   return (
-    <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}>
+    <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => { setActiveRole(UserRole.GUEST); setHomeSubPage('LANDING'); }}>
       <div className="relative">
         {syncing && (
           <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[10px] font-bold animate-pulse">

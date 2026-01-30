@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MenuItem } from '../types';
 import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail } from 'lucide-react';
 
@@ -12,6 +12,12 @@ interface HomeViewProps {
 }
 
 const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, activeSubPage, onSetSubPage }) => {
+  
+  // Efek untuk scroll ke atas setiap kali sub-page berubah
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeSubPage]);
+
   const renderLanding = () => (
     <>
       {/* Hero Section */}
