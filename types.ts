@@ -4,7 +4,8 @@ export enum UserRole {
   ADMIN = 'ADMIN',
   KASIR = 'KASIR',
   PELAYAN = 'PELAYAN',
-  CUSTOMER = 'CUSTOMER'
+  CUSTOMER = 'CUSTOMER',
+  GUEST = 'GUEST'
 }
 
 export enum OrderStatus {
@@ -30,6 +31,7 @@ export interface MenuItem {
   name: string;
   price: number;
   category: 'FOOD' | 'DRINK';
+  stock: number;
 }
 
 export interface OrderItem {
@@ -50,10 +52,19 @@ export interface Order {
   createdAt: number;
   paymentMethod?: PaymentMethod;
   paymentStatus: 'UNPAID' | 'PAID';
+  origin: 'OFFLINE' | 'ONLINE';
 }
 
-export interface Table {
-  id: number;
-  isOccupied: boolean;
-  currentOrderId?: string;
+export interface UserAccount {
+  id: string;
+  username: string;
+  role: UserRole;
+  password?: string;
+}
+
+export interface AppSettings {
+  promoText: string;
+  restaurantName: string;
+  address: string;
+  maintenanceMode: boolean;
 }

@@ -1,117 +1,146 @@
 
 import React, { useState } from 'react';
-import { MenuItem } from '../types';
-import { INITIAL_MENU } from '../constants';
-import { Plus, Edit2, Trash2, Search, Save, X } from 'lucide-react';
+import { MenuItem, AppSettings } from '../types';
+import { Plus, Edit2, Trash2, Search, Save, X, Settings as SettingsIcon, Package } from 'lucide-react';
 
-const AdminView: React.FC = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU);
+interface AdminViewProps {
+  menu: MenuItem[];
+  settings: AppSettings | null;
+  onMenuUpdate: () => void;
+}
+
+const AdminView: React.FC<AdminViewProps> = ({ menu, settings, onMenuUpdate }) => {
+  const [activeTab, setActiveTab] = useState<'MENU' | 'SETTINGS'>('MENU');
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingItem, setEditingItem] = useState<Partial<MenuItem> | null>(null);
 
-  const filteredItems = menuItems.filter(item => 
+  // Form State for Settings
+  const [promoForm, setPromoForm] = useState(settings?.promoText || '');
+  const [restName, setRestName] = useState(settings?.restaurantName || '');
+
+  const filteredItems = menu.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const saveMenuItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const data = {
+      id: editingItem?.id || Math.random().toString(36).substr(2, 9),
+      name: (form.elements.namedItem('name') as HTMLInputElement).value,
+      category: (form.elements.namedItem('category') as HTMLSelectElement).value,
+      price: Number((form.elements.namedItem('price') as HTMLInputElement).value),
+      stock: Number((form.elements.namedItem('stock') as HTMLInputElement).value),
+    };
+
+    const res = await fetch('/api/menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      setIsAdding(false);
+      setEditingItem(null);
+      onMenuUpdate();
+    }
+  };
+
+  const deleteMenuItem = async (id: string) => {
+    if (!confirm("Hapus menu ini?")) return;
+    const res = await fetch(`/api/menu?id=${id}`, { method: 'DELETE' });
+    if (res.ok) onMenuUpdate();
+  };
+
+  const saveSettings = async () => {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        promoText: promoForm,
+        restaurantName: restName
+      })
+    });
+    if (res.ok) {
+      alert("Pengaturan disimpan!");
+      onMenuUpdate();
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold neon-text-cyan font-mono uppercase">Menu Configuration</h2>
-          <p className="text-slate-400">Atur ketersediaan menu dan harga pasar</p>
+          <h2 className="text-3xl font-bold neon-text-cyan font-mono uppercase">Control Panel</h2>
+          <p className="text-slate-400">Pusat Konfigurasi Sistem Resto-On</p>
         </div>
-        <button 
-          onClick={() => setIsAdding(true)}
-          className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
-        >
-          <Plus size={20} /> Tambah Menu Baru
-        </button>
+        <div className="flex bg-slate-900 p-1 rounded-xl">
+          <button onClick={() => setActiveTab('MENU')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'MENU' ? 'bg-cyan-500 text-white' : 'text-slate-500'}`}>Menu & Stock</button>
+          <button onClick={() => setActiveTab('SETTINGS')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'SETTINGS' ? 'bg-cyan-500 text-white' : 'text-slate-500'}`}>System Settings</button>
+        </div>
       </header>
 
-      <div className="glass p-6 rounded-3xl border border-slate-800 space-y-6">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
-          <input 
-            type="text" 
-            placeholder="Cari menu berdasarkan nama..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 focus:border-cyan-500 outline-none transition-all"
-          />
-        </div>
+      {activeTab === 'MENU' ? (
+        <div className="space-y-6">
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+              <input type="text" placeholder="Cari menu..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-cyan-500" />
+            </div>
+            <button onClick={() => { setEditingItem(null); setIsAdding(true); }} className="bg-cyan-500 text-white px-6 rounded-2xl font-bold flex items-center gap-2"><Plus size={20} /> Baru</button>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-left border-b border-slate-800 text-slate-500 text-xs uppercase tracking-widest font-bold">
-                <th className="px-6 py-4">Menu Name</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4">Price (IDR)</th>
-                <th className="px-6 py-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50">
-              {filteredItems.map((item) => (
-                <tr key={item.id} className="group hover:bg-slate-900/40 transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="font-semibold text-white group-hover:text-cyan-400 transition-colors">{item.name}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                      item.category === 'FOOD' ? 'bg-orange-500/10 text-orange-400' : 'bg-blue-500/10 text-blue-400'
-                    }`}>
-                      {item.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-mono font-bold text-cyan-500">
-                    Rp {item.price.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-all"><Edit2 size={16} /></button>
-                      <button className="p-2 hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-400 transition-all"><Trash2 size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="glass p-6 rounded-3xl border border-slate-800 overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b border-slate-800 text-slate-500 text-xs uppercase font-bold"><th className="px-6 py-4">Menu</th><th className="px-6 py-4">Kategori</th><th className="px-6 py-4">Harga</th><th className="px-6 py-4">Stok</th><th className="px-6 py-4">Aksi</th></tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {filteredItems.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-900/40">
+                    <td className="px-6 py-4 font-semibold">{item.name}</td>
+                    <td className="px-6 py-4"><span className="text-[10px] font-bold bg-slate-800 px-2 py-1 rounded">{item.category}</span></td>
+                    <td className="px-6 py-4 font-mono text-cyan-400">Rp {item.price.toLocaleString()}</td>
+                    <td className="px-6 py-4"><span className={`font-bold ${item.stock < 10 ? 'text-red-500' : 'text-green-500'}`}>{item.stock}</span></td>
+                    <td className="px-6 py-4 flex gap-2">
+                      <button onClick={() => { setEditingItem(item); setIsAdding(true); }} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white"><Edit2 size={16} /></button>
+                      <button onClick={() => deleteMenuItem(item.id)} className="p-2 hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-400"><Trash2 size={16} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="glass p-8 rounded-3xl border border-slate-800 max-w-2xl space-y-6">
+          <h3 className="text-xl font-bold flex items-center gap-2"><SettingsIcon className="text-pink-500" /> Global Settings</h3>
+          <div className="space-y-4">
+            <div className="space-y-2"><label className="text-xs font-bold text-slate-500 uppercase">Nama Restoran</label><input value={restName} onChange={(e) => setRestName(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3" /></div>
+            <div className="space-y-2"><label className="text-xs font-bold text-slate-500 uppercase">Teks Promosi Beranda</label><textarea value={promoForm} onChange={(e) => setPromoForm(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 h-24" /></div>
+          </div>
+          <button onClick={saveSettings} className="w-full bg-cyan-500 py-4 rounded-2xl font-bold shadow-lg">Simpan Pengaturan</button>
+        </div>
+      )}
 
       {isAdding && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-          <div className="glass w-full max-w-lg rounded-3xl border border-slate-700 p-8 space-y-6 animate-in fade-in zoom-in duration-300">
-            <div className="flex justify-between items-center">
-              <h3 className="text-2xl font-bold neon-text-cyan">Add New Menu</h3>
-              <button onClick={() => setIsAdding(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
-            </div>
+          <form onSubmit={saveMenuItem} className="glass w-full max-w-lg rounded-3xl border border-slate-700 p-8 space-y-6">
+            <h3 className="text-2xl font-bold neon-text-cyan">{editingItem ? 'Edit' : 'Tambah'} Menu</h3>
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Nama Hidangan</label>
-                <input type="text" className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-cyan-500" placeholder="e.g. Nasi Rendang Special" />
-              </div>
+              <input name="name" defaultValue={editingItem?.name} required placeholder="Nama Menu" className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3" />
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Kategori</label>
-                  <select className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-cyan-500">
-                    <option>FOOD</option>
-                    <option>DRINK</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Harga (Rp)</label>
-                  <input type="number" className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-cyan-500" placeholder="0" />
-                </div>
+                <select name="category" defaultValue={editingItem?.category || 'FOOD'} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3"><option>FOOD</option><option>DRINK</option></select>
+                <input name="price" type="number" defaultValue={editingItem?.price} required placeholder="Harga (Rp)" className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3" />
               </div>
+              <input name="stock" type="number" defaultValue={editingItem?.stock || 100} required placeholder="Stok" className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3" />
             </div>
             <div className="flex gap-4 pt-4">
-              <button onClick={() => setIsAdding(false)} className="flex-1 py-4 glass rounded-2xl font-bold hover:bg-slate-800 transition-all">Cancel</button>
-              <button onClick={() => setIsAdding(false)} className="flex-1 py-4 bg-cyan-500 rounded-2xl text-white font-bold shadow-lg shadow-cyan-500/20 hover:translate-y-[-2px] transition-all flex items-center justify-center gap-2">
-                <Save size={18} /> Save Item
-              </button>
+              <button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-4 glass rounded-2xl font-bold">Batal</button>
+              <button type="submit" className="flex-1 py-4 bg-cyan-500 rounded-2xl text-white font-bold shadow-lg">Simpan</button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </div>
