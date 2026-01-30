@@ -9,10 +9,30 @@ const pool = createPool({
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (!process.env.POSTGRES_URL) {
-      throw new Error("POSTGRES_URL is missing. Please connect Neon in Vercel Storage tab.");
+      throw new Error("POSTGRES_URL is missing.");
     }
 
-    // 1. Tables for Core Logic
+    // 1. Create Tables if they don't exist
+    await pool.sql`
+      CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        table_number INTEGER,
+        items TEXT NOT NULL,
+        total NUMERIC NOT NULL,
+        status TEXT NOT NULL,
+        created_at BIGINT NOT NULL,
+        payment_status TEXT NOT NULL DEFAULT 'UNPAID',
+        payment_method TEXT,
+        origin TEXT DEFAULT 'OFFLINE'
+      );
+    `;
+
+    // 2. Migration: Ensure columns exist in case table was created with old schema
+    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'UNPAID'`; } catch(e) {}
+    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS origin TEXT DEFAULT 'OFFLINE'`; } catch(e) {}
+    try { await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'DINE_IN'`; } catch(e) {}
+
     await pool.sql`
       CREATE TABLE IF NOT EXISTS menu_items (
         id TEXT PRIMARY KEY,
@@ -24,48 +44,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `;
 
     await pool.sql`
-      CREATE TABLE IF NOT EXISTS orders (
-        id TEXT PRIMARY KEY,
-        type TEXT NOT NULL,
-        table_number INTEGER,
-        items TEXT NOT NULL,
-        total NUMERIC NOT NULL,
-        status TEXT NOT NULL,
-        created_at BIGINT NOT NULL,
-        payment_status TEXT NOT NULL,
-        payment_method TEXT,
-        origin TEXT DEFAULT 'OFFLINE'
-      );
-    `;
-
-    await pool.sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL
-      );
-    `;
-
-    await pool.sql`
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
       );
     `;
 
-    await pool.sql`
-      CREATE TABLE IF NOT EXISTS transactions (
-        id TEXT PRIMARY KEY,
-        order_id TEXT REFERENCES orders(id),
-        type TEXT NOT NULL, -- 'SALE' or 'PURCHASE'
-        amount NUMERIC NOT NULL,
-        description TEXT,
-        created_at BIGINT NOT NULL
-      );
-    `;
-
-    // 2. Seeding Initial Data if empty
+    // Seeding menu items
     const { rowCount: menuCount } = await pool.sql`SELECT * FROM menu_items LIMIT 1`;
     if (menuCount === 0) {
       await pool.sql`
@@ -87,37 +72,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ('15', 'Minuman Es Jeruk', 'DRINK', 10000, 100);
       `;
     }
-
-    const { rowCount: userCount } = await pool.sql`SELECT * FROM users LIMIT 1`;
-    if (userCount === 0) {
-      await pool.sql`
-        INSERT INTO users (id, username, password, role) VALUES 
-        ('admin-1', 'admin', 'admin123', 'ADMIN'),
-        ('mgt-1', 'manager', 'manager123', 'MANAGEMENT'),
-        ('ksr-1', 'kasir', 'kasir123', 'KASIR');
-      `;
-    }
-
-    const { rowCount: settingsCount } = await pool.sql`SELECT * FROM settings LIMIT 1`;
-    if (settingsCount === 0) {
-      await pool.sql`
-        INSERT INTO settings (key, value) VALUES 
-        ('promoText', 'Diskon 10% untuk Pembelian via Transfer BCA!'),
-        ('restaurantName', 'BAGINDO RAJO'),
-        ('address', 'Jl. Future No. 101, Techno City');
-      `;
-    }
     
-    return res.status(200).json({ 
-      status: "Success", 
-      message: "Database Resto-On v2.6 berhasil diinisialisasi!",
-      details: "Semua tabel dan data Bagindo Rajo telah siap."
-    });
+    return res.status(200).json({ status: "Success", message: "Database Resto-On v2.8 Ready." });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ 
-      status: "Error", 
-      message: error.message 
-    });
+    return res.status(500).json({ status: "Error", message: error.message });
   }
 }

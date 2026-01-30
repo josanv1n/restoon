@@ -39,16 +39,11 @@ const App: React.FC = () => {
       
       if (orderRes.ok) {
         const data = await orderRes.json();
-        // Pastikan data yang diterima adalah array
-        if (Array.isArray(data)) {
-          setOrders(data);
-        }
+        setOrders(Array.isArray(data) ? data : []);
       }
       if (menuRes.ok) {
         const remoteMenu = await menuRes.json();
-        if (remoteMenu && Array.isArray(remoteMenu) && remoteMenu.length > 0) {
-          setMenu(remoteMenu);
-        }
+        if (remoteMenu && Array.isArray(remoteMenu)) setMenu(remoteMenu);
       }
       if (settingsRes.ok) setSettings(await settingsRes.json());
     } catch (err) {
@@ -60,13 +55,22 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Initialize System
   useEffect(() => {
-    fetchData(true);
-    // Poll data setiap 3 detik agar sinkronisasi Pelayan -> Kasir terasa real-time
-    const interval = setInterval(() => {
-      fetchData();
-    }, 3000); 
+    const initSystem = async () => {
+      setLoading(true);
+      try {
+        await fetch('/api/setup'); // Auto-heal database
+        await fetchData(true);
+      } catch (e) {
+        console.error("Init failed");
+        fetchData(true);
+      }
+    };
+    
+    initSystem();
 
+    const interval = setInterval(() => fetchData(), 3000); 
     const handleRefresh = () => fetchData();
     window.addEventListener('refreshData', handleRefresh);
     
@@ -84,12 +88,13 @@ const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder)
       });
-      if (res.ok) {
-        // Langsung fetch ulang setelah order berhasil
-        await fetchData();
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to save order");
       }
-    } catch (err) {
-      alert("Gagal mengirim pesanan.");
+      await fetchData();
+    } catch (err: any) {
+      alert("ERROR SISTEM: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -116,15 +121,7 @@ const App: React.FC = () => {
   const renderRoleView = () => {
     switch (activeRole) {
       case UserRole.GUEST: 
-        return (
-          <HomeView 
-            menu={menu} 
-            onLoginClick={() => setShowLogin(true)} 
-            onOrderOnline={() => setActiveRole(UserRole.CUSTOMER)}
-            activeSubPage={homeSubPage}
-            onSetSubPage={setHomeSubPage}
-          />
-        );
+        return <HomeView menu={menu} onLoginClick={() => setShowLogin(true)} onOrderOnline={() => setActiveRole(UserRole.CUSTOMER)} activeSubPage={homeSubPage} onSetSubPage={setHomeSubPage} />;
       case UserRole.CUSTOMER: 
         return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} /></Layout>;
       case UserRole.PELAYAN: 
@@ -143,7 +140,7 @@ const App: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       {syncing && (
-        <div className="fixed top-6 right-6 z-[100] glass px-3 py-1.5 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[9px] font-bold animate-pulse shadow-lg shadow-cyan-500/10">
+        <div className="fixed top-6 right-6 z-[100] glass px-3 py-1.5 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[9px] font-bold animate-pulse">
           <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div> LIVE SYNC
         </div>
       )}
@@ -151,19 +148,16 @@ const App: React.FC = () => {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-slate-950">
            <Loader2 size={48} className="animate-spin text-cyan-500" />
-           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing Resto-On OS...</p>
+           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Syncing with Neon DB...</p>
         </div>
       ) : (
-        <div className="animate-in fade-in duration-500">
-          {renderRoleView()}
-        </div>
+        <div className="animate-in fade-in duration-500">{renderRoleView()}</div>
       )}
 
-      {/* Login Modal - Global Access */}
       {showLogin && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
-          <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6 shadow-2xl shadow-cyan-500/10 animate-in zoom-in-95 duration-300">
+          <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6 shadow-2xl animate-in zoom-in-95 duration-300">
             <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold neon-text-cyan">Crew Access</h2>
@@ -177,7 +171,7 @@ const App: React.FC = () => {
                   className="w-full py-4 px-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-left font-bold transition-all flex justify-between items-center group"
                 >
                   <span className="text-slate-400 group-hover:text-white uppercase text-xs tracking-widest">{role} System</span>
-                  <ChevronRight size={16} className="text-slate-600 group-hover:text-cyan-400 transition-colors" />
+                  <ChevronRight size={16} className="text-slate-600 group-hover:text-cyan-400" />
                 </button>
               ))}
             </div>
