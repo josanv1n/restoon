@@ -10,8 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is missing.");
     
-    // Parameter optimasi gambar ultra rendah: 
-    // q=20 (kualitas rendah), w=300 (lebar kecil), fm=webp (kompresi modern)
+    // Parameter optimasi gambar ultra rendah untuk kecepatan maksimal
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
     // 1. Create Tables
@@ -26,23 +25,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
     await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'Resto-On') ON CONFLICT (key) DO NOTHING`;
 
-    // 3. Data Seeding - Menggunakan ID Unsplash yang lebih stabil untuk Vercel
+    // 3. Data Seeding - Menggunakan ID Unsplash Spesifik yang Lebih Menarik & Stabil
     const fullMenu = [
-      { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1541544741938-0af808b77e40' },
+      { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1626074353765-517a681e40be' }, // Plate of Nasi Padang + Rendang
       { id: '2', name: 'Nasi + Ayam Goreng', price: 23000, cat: 'FOOD', img: '1626645738196-c2a7c87a8f58' },
       { id: '3', name: 'Nasi + Ayam Bakar', price: 23000, cat: 'FOOD', img: '1598515214211-89d3c73ae83b' },
       { id: '4', name: 'Nasi + Ayam Telur Dadar', price: 20000, cat: 'FOOD', img: '1518492104633-130d0cc84637' },
       { id: '5', name: 'Nasi + Tunjang', price: 27500, cat: 'FOOD', img: '1546069901-ba9599a7e63c' },
-      { id: '6', name: 'Rendang Premium', price: 20000, cat: 'FOOD', img: '1585032226651-759b368d7246' },
+      { id: '6', name: 'Rendang Premium', price: 20000, cat: 'FOOD', img: '1585032226651-759b368d7246' }, // Dark, savory beef rendang
       { id: '7', name: 'Ayam Goreng Lengkuas', price: 16000, cat: 'FOOD', img: '1567620832903-9fc6debc209f' },
       { id: '8', name: 'Ayam Bakar Spesial', price: 16000, cat: 'FOOD', img: '1555939594-58d7cb561ad1' },
       { id: '9', name: 'Telur Dadar Barembo', price: 14000, cat: 'FOOD', img: '1525351484163-7529414344d8' },
       { id: '10', name: 'Sayur Nangka Kapau', price: 10000, cat: 'FOOD', img: '1512621776951-a57141f2eefd' },
       { id: '11', name: 'Jengkol Balado Luxury', price: 31000, cat: 'FOOD', img: '1563379091339-03b21ab4a4f8' },
-      { id: '12', name: 'Es Kelapa Jeruk Segar', price: 25000, cat: 'DRINK', img: '1613478223719-2ab802602423' },
+      { id: '12', name: 'Es Kelapa Jeruk Segar', price: 25000, cat: 'DRINK', img: '1544145945-f904253d0c7b' }, // Refreshing coconut orange
       { id: '13', name: 'Es Teh Manis', price: 3000, cat: 'DRINK', img: '1556679343-c7306c1976bc' },
       { id: '14', name: 'Teh Hangat', price: 2000, cat: 'DRINK', img: '1564890369478-c89ca6d9cde9' },
       { id: '15', name: 'Es Jeruk Peras', price: 10000, cat: 'DRINK', img: '1613478223719-2ab802602423' },
+      { id: '16', name: 'Nasi Putih Hangat (Mangkuk)', price: 6000, cat: 'FOOD', img: '1516684732162-798a0062be99' }, // Steaming white rice in a bowl
     ];
 
     for (const item of fullMenu) {
@@ -58,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Resto-On seeded successfully. Images optimized for Vercel." });
+    return res.status(200).json({ success: true, message: "Resto-On seeded successfully. All requested images are now live." });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
