@@ -152,12 +152,13 @@ const App: React.FC = () => {
     } catch (err) { console.error(err); }
   };
 
+  const tablesCount = Number(settings?.tablesCount) || 12;
+
   const renderRoleView = () => {
     if (activeRole === UserRole.GUEST) {
       return <HomeView menu={menu} onLoginClick={() => { setLoginMode('STAFF'); setShowLogin(true); }} onOrderOnline={() => { setLoginMode('CUSTOMER'); setShowLogin(true); }} activeSubPage={homeSubPage} onSetSubPage={setHomeSubPage} />;
     }
 
-    // Wrap views in Layout with filtered sidebar
     return (
       <Layout 
         activeRole={activeRole} 
@@ -165,8 +166,8 @@ const App: React.FC = () => {
         onRoleChange={setActiveRole} 
         onLogout={() => { setActiveRole(UserRole.GUEST); setCurrentUser(null); }}
       >
-        {activeRole === UserRole.CUSTOMER && <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} />}
-        {activeRole === UserRole.PELAYAN && <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} />}
+        {activeRole === UserRole.CUSTOMER && <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} tablesCount={tablesCount} />}
+        {activeRole === UserRole.PELAYAN && <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} tablesCount={tablesCount} />}
         {activeRole === UserRole.KASIR && <CashierView orders={orders} onProcessPayment={handleProcessPayment} />}
         {activeRole === UserRole.ADMIN && <AdminView menu={menu} onMenuUpdate={() => fetchData()} settings={settings} />}
         {activeRole === UserRole.MANAGEMENT && <ManagementView orders={orders} />}

@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Order, OrderStatus, OrderType, MenuItem, OrderItem } from '../types';
-import { TABLES_COUNT } from '../constants';
 import { MapPin, Send, Plus, Minus, Search, ListPlus, Loader2, ShoppingBag, LayoutGrid, Utensils } from 'lucide-react';
 
 interface WaiterViewProps {
@@ -9,16 +8,17 @@ interface WaiterViewProps {
   orders: Order[];
   onPlaceOrder: (order: Order) => void;
   onUpdateStatus: (orderId: string, status: OrderStatus) => void;
+  tablesCount: number;
 }
 
-const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder }) => {
+const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tablesCount }) => {
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [orderType, setOrderType] = useState<OrderType>(OrderType.DINE_IN);
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const tableStatus = Array.from({ length: TABLES_COUNT }, (_, i) => {
+  const tableStatus = Array.from({ length: tablesCount }, (_, i) => {
     const tableNum = i + 1;
     const activeOrder = orders.find(o => 
       o.tableNumber === tableNum && 

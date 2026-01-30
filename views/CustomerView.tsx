@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
 import { MenuItem, OrderType, OrderStatus, OrderItem, Order } from '../types';
-import { TABLES_COUNT } from '../constants';
 import { ShoppingCart, Plus, Minus, ChevronRight, LayoutGrid, CheckCircle2, Utensils } from 'lucide-react';
 
 interface CustomerViewProps {
   menu: MenuItem[];
   onPlaceOrder: (order: any) => void;
   existingOrders: Order[];
+  tablesCount: number;
 }
 
-const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existingOrders }) => {
+const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existingOrders, tablesCount }) => {
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [orderType, setOrderType] = useState<OrderType>(OrderType.DINE_IN);
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
@@ -154,8 +154,8 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
                 <LayoutGrid size={12} /> Meja Tersedia
               </p>
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: TABLES_COUNT }, (_, i) => {
+              <div className="grid grid-cols-4 gap-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
+                {Array.from({ length: tablesCount }, (_, i) => {
                   const tableNum = i + 1;
                   const isOccupied = occupiedTables.includes(tableNum);
                   const isSelected = selectedTable === tableNum;

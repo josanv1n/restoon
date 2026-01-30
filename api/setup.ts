@@ -18,6 +18,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`;
 
+    // Check if tablesCount exists
+    const { rows: tableSetting } = await pool.sql`SELECT * FROM settings WHERE key = 'tablesCount'`;
+    if (tableSetting.length === 0) {
+      await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12')`;
+    }
+
     try { await pool.sql`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS image_url TEXT`; } catch(e) {}
 
     // Force update all images to low-res for existing data

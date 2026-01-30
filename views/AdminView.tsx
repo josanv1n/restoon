@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MenuItem, AppSettings } from '../types';
-import { Plus, Edit2, Trash2, Search, Save, X, Settings as SettingsIcon, Package, Utensils } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Save, X, Settings as SettingsIcon, Package, Utensils, LayoutGrid } from 'lucide-react';
 
 interface AdminViewProps {
   menu: MenuItem[];
@@ -17,6 +17,15 @@ const AdminView: React.FC<AdminViewProps> = ({ menu, settings, onMenuUpdate }) =
 
   const [promoForm, setPromoForm] = useState(settings?.promoText || '');
   const [restName, setRestName] = useState(settings?.restaurantName || '');
+  const [tablesCount, setTablesCount] = useState<number>(Number(settings?.tablesCount) || 12);
+
+  useEffect(() => {
+    if (settings) {
+      setPromoForm(settings.promoText || '');
+      setRestName(settings.restaurantName || '');
+      setTablesCount(Number(settings.tablesCount) || 12);
+    }
+  }, [settings]);
 
   const filteredItems = menu.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -31,7 +40,6 @@ const AdminView: React.FC<AdminViewProps> = ({ menu, settings, onMenuUpdate }) =
       category: (form.elements.namedItem('category') as HTMLSelectElement).value,
       price: Number((form.elements.namedItem('price') as HTMLInputElement).value),
       stock: Number((form.elements.namedItem('stock') as HTMLInputElement).value),
-      // Per request: Kita tidak mengelola image URL di sub menu ini
       imageUrl: editingItem?.imageUrl || `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=40&w=320&auto=format` 
     };
 
@@ -60,7 +68,8 @@ const AdminView: React.FC<AdminViewProps> = ({ menu, settings, onMenuUpdate }) =
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         promoText: promoForm,
-        restaurantName: restName
+        restaurantName: restName,
+        tablesCount: tablesCount.toString()
       })
     });
     if (res.ok) {
@@ -133,8 +142,34 @@ const AdminView: React.FC<AdminViewProps> = ({ menu, settings, onMenuUpdate }) =
         <div className="glass p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] border border-slate-800 max-w-2xl space-y-6 shadow-2xl">
           <h3 className="text-xl font-bold flex items-center gap-3 font-mono tracking-tighter uppercase"><SettingsIcon size={20} className="text-pink-500" /> Settings</h3>
           <div className="space-y-4">
-            <div className="space-y-1"><label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-2">Nama Restoran</label><input value={restName} onChange={(e) => setRestName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-pink-500 text-sm text-slate-200" /></div>
-            <div className="space-y-1"><label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-2">Broadcast Promo</label><textarea value={promoForm} onChange={(e) => setPromoForm(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 h-24 outline-none focus:border-pink-500 text-sm text-slate-200" /></div>
+            <div className="space-y-1">
+              <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-2">Nama Restoran</label>
+              <input value={restName} onChange={(e) => setRestName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-pink-500 text-sm text-slate-200" />
+            </div>
+            
+            {/* Table Configuration Module */}
+            <div className="space-y-1">
+              <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-2 flex items-center gap-2">
+                <LayoutGrid size={10} /> Konfigurasi Meja (M1 - M{tablesCount})
+              </label>
+              <div className="flex gap-2">
+                 <input 
+                  type="number" 
+                  min="1" 
+                  max="100" 
+                  value={tablesCount} 
+                  onChange={(e) => setTablesCount(Math.max(1, Number(e.target.value)))} 
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-pink-500 text-sm text-slate-200" 
+                  placeholder="Jumlah Meja (e.g. 12)"
+                />
+              </div>
+              <p className="text-[7px] text-slate-500 italic pl-2 mt-1">*Jumlah meja akan langsung terupdate di sistem portal dan waiter.</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-2">Broadcast Promo</label>
+              <textarea value={promoForm} onChange={(e) => setPromoForm(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 h-24 outline-none focus:border-pink-500 text-sm text-slate-200" />
+            </div>
           </div>
           <button onClick={saveSettings} className="w-full bg-pink-600 py-4 rounded-xl font-bold text-white uppercase tracking-widest text-[10px] shadow-lg shadow-pink-500/20">SIMPAN KONFIGURASI</button>
         </div>

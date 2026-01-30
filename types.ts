@@ -88,4 +88,5 @@ export interface AppSettings {
   restaurantName: string;
   address: string;
   maintenanceMode: boolean;
+  tablesCount: number;
 }
