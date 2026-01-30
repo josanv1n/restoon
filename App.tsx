@@ -74,7 +74,8 @@ const App: React.FC = () => {
       console.error("Sync error:", err);
     } finally {
       setLoading(false);
-      setSyncing(false);
+      // Berikan sedikit delay agar UI tidak berkedip terlalu cepat
+      setTimeout(() => setSyncing(false), 800);
       isFetchingRef.current = false;
     }
   }, [menu.length]);
@@ -85,7 +86,8 @@ const App: React.FC = () => {
       try { await fetch('/api/setup'); } catch (e) {}
     };
     runSetup();
-    const interval = setInterval(() => fetchData(), 15000); 
+    // Interval ditingkatkan ke 30 detik untuk stabilitas commit/push
+    const interval = setInterval(() => fetchData(), 30000); 
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -178,15 +180,15 @@ const App: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       {syncing && (
-        <div className="fixed top-6 right-6 z-[100] glass px-3 py-1.5 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[9px] font-bold">
-          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div> LIVE SYNC
+        <div className="fixed top-4 right-4 z-[100] bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-cyan-500/20 flex items-center gap-2 text-cyan-400 text-[8px] font-bold shadow-lg animate-pulse">
+          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_cyan]"></div> SYNCING
         </div>
       )}
       
       {loading ? (
         <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-slate-950">
-           <Loader2 size={48} className="animate-spin text-cyan-500" />
-           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing Protocol...</p>
+           <Loader2 size={40} className="animate-spin text-cyan-500" />
+           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Resto-On System Booting...</p>
         </div>
       ) : renderRoleView()}
 
@@ -197,7 +199,7 @@ const App: React.FC = () => {
             <button onClick={() => setShowLogin(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
             <div className="text-center space-y-3">
               <div className="w-20 h-20 bg-cyan-500/5 rounded-3xl flex items-center justify-center mx-auto border border-cyan-500/10 shadow-2xl mb-2 overflow-hidden bg-slate-900">
-                 <img src={LOGO_URL} alt="Logo" className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).style.display='none'} />
+                 <img src={`${LOGO_URL}=s200`} alt="Logo" className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).style.display='none'} />
               </div>
               <h2 className="text-3xl font-bold neon-text-cyan font-mono tracking-tighter uppercase">
                 {loginMode === 'STAFF' ? 'Secure Terminal' : loginMode === 'REGISTER' ? 'Join Resto-On' : 'Auth Protocol'}

@@ -12,14 +12,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
-    await pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`;
-    await pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`;
-    await pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`;
-    await pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT)`;
-    await pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`;
-    await pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`;
+    // Atomic Table Creation
+    await Promise.all([
+      pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`
+    ]);
 
-    // Update branding to RM. Bagindo Rajo
+    // Re-branding verification
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
     await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'RM. Bagindo Rajo') ON CONFLICT (key) DO UPDATE SET value = 'RM. Bagindo Rajo'`;
 
@@ -55,7 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Resto-On rebranded to RM. Bagindo Rajo." });
+    return res.status(200).json({ success: true, message: "Database restoon initialized." });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
