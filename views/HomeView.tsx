@@ -41,7 +41,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     const parent = target.parentElement;
     if (parent) {
       parent.classList.add('flex', 'items-center', 'justify-center', 'bg-slate-900');
-      // Menampilkan inisial branding jika gambar gagal dimuat
       if (!parent.querySelector('.fallback-branding')) {
         const fallback = document.createElement('div');
         fallback.className = 'fallback-branding font-mono font-bold text-cyan-500 text-sm md:text-xl';
@@ -167,7 +166,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-in fade-in duration-300">
       <div className="glass p-12 rounded-[3rem] border-slate-800 space-y-8 shadow-2xl relative overflow-hidden text-center">
         <div className="w-24 h-24 mx-auto rounded-3xl overflow-hidden border-2 border-cyan-500/50 shadow-cyan-500/20 shadow-2xl mb-6 flex items-center justify-center bg-slate-900">
-          <img src={LOGO_URL} alt="Logo" className="w-full h-full object-cover" onError={handleImgError} />
+          <img src={LOGO_URL} alt="RM. Bagindo Rajo" className="w-full h-full object-cover" onError={handleImgError} />
         </div>
         <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">RM. Bagindo Rajo</h2>
         <p className="text-xl text-slate-300 italic font-light">"Rumah Makan Padang Terenak dan Terbaik."</p>
@@ -233,7 +232,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => onSetSubPage('LANDING')}>
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg shadow-cyan-500/10 group-hover:rotate-12 transition-transform overflow-hidden border border-slate-800">
-              <img src={LOGO_URL} alt="Branding" className="w-full h-full object-cover" onError={handleImgError} />
+              <img src={LOGO_URL} alt="RM. Bagindo Rajo" className="w-full h-full object-cover" onError={handleImgError} />
             </div>
             <div>
               <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tighter text-white neon-text-cyan uppercase">Bagindo Rajo</h1>
@@ -273,7 +272,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         </button>
         <div className="flex flex-col items-center justify-center h-full space-y-10">
           <div className="w-20 h-20 rounded-3xl overflow-hidden border-2 border-cyan-500/30 shadow-2xl mb-4 flex items-center justify-center bg-slate-900">
-             <img src={LOGO_URL} alt="Logo" className="w-full h-full object-cover" onError={handleImgError} />
+             <img src={LOGO_URL} alt="RM. Bagindo Rajo" className="w-full h-full object-cover" onError={handleImgError} />
           </div>
           {navItems.map((item) => (
             <button 
@@ -297,7 +296,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
           <div className="space-y-6">
              <div className="flex items-center gap-3">
                <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center bg-slate-900">
-                  <img src={LOGO_URL} alt="Logo" className="w-full h-full object-cover" onError={handleImgError} />
+                  <img src={LOGO_URL} alt="RM. Bagindo Rajo" className="w-full h-full object-cover" onError={handleImgError} />
                </div>
                <h3 className="text-2xl font-bold font-mono tracking-tighter uppercase">Bagindo Rajo</h3>
              </div>

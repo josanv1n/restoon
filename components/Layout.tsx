@@ -36,11 +36,12 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900 flex items-center justify-center neon-border shadow-cyan-500/10 overflow-hidden shrink-0">
             <img 
               src={LOGO_URL} 
-              alt="Logo" 
+              alt="RM. Bagindo Rajo" 
               className="w-full h-full object-cover" 
               onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                (e.target as HTMLImageElement).parentElement?.classList.add('flex', 'items-center', 'justify-center');
+                const target = e.target as HTMLImageElement;
+                target.style.opacity = '0';
+                target.parentElement?.classList.add('bg-cyan-500/10');
               }}
             />
           </div>
