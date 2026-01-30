@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
 import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, UtensilsCrossed, Utensils } from 'lucide-react';
@@ -40,7 +39,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     const parent = target.parentElement;
     if (parent) {
       parent.classList.add('flex', 'items-center', 'justify-center', 'bg-slate-900');
-      // Sisipkan ikon placeholder jika gambar gagal
       const icon = document.createElement('div');
       icon.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-700"><path d="M11 20A7 7 0 0 1 11 6a7 7 0 0 1 0 14Z"/><path d="M20 20l-4.5-4.5"/></svg>`;
       parent.appendChild(icon);
@@ -170,111 +168,160 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
 
   const renderContact = () => (
     <section className="pt-32 pb-20 px-6 max-w-2xl mx-auto animate-in fade-in duration-300">
-      <div className="glass p-10 rounded-[2.5rem] border-slate-800 space-y-8 shadow-2xl">
-        <h2 className="text-4xl font-bold neon-text-cyan font-mono uppercase tracking-tighter">Hubungi Kami</h2>
-        <div className="flex items-center gap-5 p-6 bg-slate-900/40 rounded-2xl border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer group">
-            <Mail className="text-cyan-400" size={20} />
-            <div>
-              <p className="font-black text-[10px] uppercase tracking-widest text-slate-200">Email Support</p>
-              <p className="text-sm text-slate-400 font-bold">support@restoon.app</p>
-            </div>
+      <div className="glass p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border-slate-800 space-y-10 shadow-2xl relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        
+        <div className="space-y-3">
+          <h2 className="text-4xl font-bold neon-text-cyan font-mono uppercase tracking-tighter">Hubungi Kami</h2>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Layanan Pelanggan Hub Johan.jkt999</p>
+        </div>
+
+        <div className="grid gap-4 md:gap-6">
+          {/* Email / ID Card */}
+          <div className="flex items-center gap-6 p-6 bg-slate-900/40 rounded-3xl border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer group">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20 group-hover:scale-110 transition-transform shadow-lg">
+                <Mail size={28} />
+              </div>
+              <div>
+                <p className="font-black text-[10px] uppercase tracking-widest text-slate-500 mb-0.5">Official ID</p>
+                <p className="text-lg text-slate-200 font-bold">Johan.jkt999@gmail.com</p>
+              </div>
+          </div>
+
+          {/* WhatsApp Card */}
+          <a 
+            href="https://wa.me/6281341300100" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-6 p-6 bg-slate-900/40 rounded-3xl border border-slate-800 hover:border-emerald-500/40 transition-all cursor-pointer group no-underline shadow-xl hover:bg-emerald-500/5"
+          >
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition-transform shadow-lg">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.626 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="font-black text-[10px] uppercase tracking-widest text-slate-500 mb-0.5">WhatsApp Hotline</p>
+                <p className="text-lg text-slate-200 font-bold">+62 813 41 300 100</p>
+              </div>
+              <ChevronRight size={18} className="ml-auto text-slate-700 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+          </a>
         </div>
       </div>
     </section>
   );
 
+  const renderContent = () => {
+    switch (activeSubPage) {
+      case 'FULL_MENU': return renderFullMenu();
+      case 'PROFILE': return renderProfile();
+      case 'CONTACT': return renderContact();
+      default: return renderLanding();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 selection:bg-cyan-500 selection:text-white pb-20 overflow-hidden">
       <nav className="fixed top-0 w-full z-[100] glass border-b border-slate-800/50 shadow-2xl">
         <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer relative z-[101] group" onClick={() => onSetSubPage('LANDING')}>
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border shadow-cyan-500/30 group-hover:rotate-[360deg] transition-transform duration-700">
-              <UtensilsCrossed size={24} className="text-white" />
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => onSetSubPage('LANDING')}>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:rotate-12 transition-transform">
+              <UtensilsCrossed size={20} className="text-white" />
             </div>
-            <span className="text-xl md:text-2xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">Resto-On</span>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tighter text-white neon-text-cyan">Resto-On</h1>
+              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Future Dining</p>
+            </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-10 text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] relative z-[101]">
+          <div className="hidden lg:flex items-center gap-10">
             {navItems.map((item) => (
               <button 
                 key={item.id}
-                onClick={() => onSetSubPage(item.id)} 
-                className={`hover:text-cyan-400 transition-all cursor-pointer py-2 ${activeSubPage === item.id ? 'text-cyan-400' : ''}`}
+                onClick={() => onSetSubPage(item.id)}
+                className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-cyan-400 cursor-pointer ${activeSubPage === item.id ? 'text-cyan-400' : 'text-slate-400'}`}
               >
                 {item.label}
               </button>
             ))}
+            <div className="h-8 w-px bg-slate-800"></div>
+            <button 
+              onClick={onLoginClick}
+              className="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-300 hover:border-cyan-500/50 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-xl"
+            >
+              <LogIn size={14} className="text-cyan-500" /> Staff Login
+            </button>
           </div>
 
-          <button 
-            onClick={onLoginClick}
-            className="hidden lg:flex items-center gap-3 px-6 py-3 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-black text-slate-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-all cursor-pointer tracking-widest uppercase shadow-xl"
-          >
-            <LogIn size={14} /> CREW LOGIN
-          </button>
-
-          <button 
-            className="md:hidden p-2 text-slate-400 hover:text-white glass rounded-lg cursor-pointer relative z-[110]"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
+          <button className="lg:hidden p-3 bg-slate-900 border border-slate-800 rounded-xl text-cyan-500" onClick={() => setIsMobileMenuOpen(true)}>
+            <MenuIcon size={24} />
           </button>
         </div>
       </nav>
 
-      <div className={`fixed inset-0 z-[105] md:hidden transition-all duration-500 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" onClick={() => setIsMobileMenuOpen(false)}></div>
-        
-        <div className={`absolute right-0 top-0 h-full w-[80%] max-w-xs glass border-l border-slate-800 p-8 flex flex-col justify-center gap-8 transition-transform duration-500 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-           <div className="space-y-6">
-              <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mb-4">Navigasi Utama</p>
-              {navItems.map((item) => (
-                <button 
-                  key={item.id}
-                  onClick={() => {
-                    onSetSubPage(item.id);
-                    setIsMobileMenuOpen(false);
-                  }} 
-                  className={`w-full text-left text-2xl font-bold tracking-tight uppercase transition-all ${activeSubPage === item.id ? 'text-cyan-400 neon-text-cyan' : 'text-slate-400 hover:text-white'}`}
-                >
-                  {item.label}
-                </button>
-              ))}
-           </div>
-           
-           <div className="pt-8 border-t border-slate-800 space-y-4">
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  onLoginClick();
-                }}
-                className="w-full py-4 bg-slate-900 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-400 flex items-center justify-center gap-3 uppercase tracking-widest"
-              >
-                <LogIn size={16} /> Crew Login
-              </button>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  onOrderOnline();
-                }}
-                className="w-full py-4 bg-cyan-600 rounded-2xl text-[10px] font-black text-white flex items-center justify-center gap-3 uppercase tracking-widest shadow-lg shadow-cyan-500/20"
-              >
-                Pesan Sekarang
-              </button>
-           </div>
+      {/* Mobile Menu */}
+      <div className={`fixed inset-0 z-[200] bg-slate-950/98 backdrop-blur-xl transition-all duration-500 lg:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <button className="absolute top-8 right-8 p-4 text-slate-400" onClick={() => setIsMobileMenuOpen(false)}>
+          <X size={32} />
+        </button>
+        <div className="flex flex-col items-center justify-center h-full space-y-10">
+          {navItems.map((item) => (
+            <button 
+              key={item.id}
+              onClick={() => onSetSubPage(item.id)}
+              className="text-3xl font-bold font-mono tracking-tighter uppercase text-slate-200 hover:text-cyan-400"
+            >
+              {item.label}
+            </button>
+          ))}
+          <button onClick={onLoginClick} className="px-10 py-5 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest text-xs">Staff Terminal</button>
         </div>
       </div>
 
-      <div className="animate-in fade-in duration-300 relative z-10">
-        {activeSubPage === 'LANDING' && renderLanding()}
-        {activeSubPage === 'FULL_MENU' && renderFullMenu()}
-        {activeSubPage === 'PROFILE' && renderProfile()}
-        {activeSubPage === 'CONTACT' && renderContact()}
-      </div>
+      <main>
+        {renderContent()}
+      </main>
 
-      <footer className="mt-20 py-10 border-t border-slate-800/50 px-6 relative z-10 opacity-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em]">
-          <p>© 2025 Resto-On | Online OS</p>
+      <footer className="py-20 px-6 border-t border-slate-900 bg-slate-950/50">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="space-y-6">
+             <div className="flex items-center gap-3">
+               <UtensilsCrossed size={24} className="text-cyan-500" />
+               <h3 className="text-2xl font-bold font-mono tracking-tighter uppercase">Resto-On</h3>
+             </div>
+             <p className="text-sm text-slate-500 leading-relaxed">
+               Mendefinisikan ulang cara Anda bersantap melalui teknologi pesanan digital masa depan yang cepat dan efisien.
+             </p>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500 mb-8">Navigasi</h4>
+            <ul className="space-y-4">
+              {navItems.map(n => (
+                <li key={n.id}><button onClick={() => onSetSubPage(n.id)} className="text-sm text-slate-400 hover:text-white transition-colors uppercase tracking-widest text-[11px] font-bold">{n.label}</button></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500 mb-8">Jam Operasional</h4>
+            <ul className="space-y-4 text-sm text-slate-400 font-medium">
+              <li className="flex justify-between"><span>Senin - Kamis</span> <span className="text-white">10:00 - 22:00</span></li>
+              <li className="flex justify-between"><span>Jumat - Minggu</span> <span className="text-white">10:00 - 23:00</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500 mb-8">Social Connect</h4>
+            <div className="flex gap-4">
+              <button className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-pink-500 hover:border-pink-500/50 transition-all shadow-lg"><Instagram size={20} /></button>
+              <button className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-400 hover:border-blue-400/50 transition-all shadow-lg"><Twitter size={20} /></button>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-900/50 flex flex-col md:flex-row justify-between items-center gap-6">
+           <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">&copy; 2025 Resto-On OS. All Rights Reserved.</p>
+           <div className="flex gap-8 text-[9px] font-black text-slate-600 uppercase tracking-widest">
+              <a href="#" className="hover:text-cyan-500">Privacy Policy</a>
+              <a href="#" className="hover:text-cyan-500">Terms of Service</a>
+           </div>
         </div>
       </footer>
     </div>
