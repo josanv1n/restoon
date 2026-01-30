@@ -1,8 +1,11 @@
 
 import { MenuItem } from './types';
 
-// Optimization params: q=20 (very low quality), w=300 (small width), auto=format, fm=webp (next-gen compression)
+// Optimization params for Unsplash
 const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
+
+// Link Logo Google Drive (Format Thumbnail lebih stabil untuk Hotlinking)
+export const LOGO_URL = "https://drive.google.com/thumbnail?id=1rnltv3RUb1gsT9IyzCTCR-_cr85FcZ-u&sz=w1000";
 
 export const INITIAL_MENU: MenuItem[] = [
   { id: '1', name: 'Nasi + Rendang', price: 26000, category: 'FOOD', stock: 100, imageUrl: `https://images.unsplash.com/photo-1626074353765-517a681e40be?${OPT}` },
