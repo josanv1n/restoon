@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
-import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, UtensilsCrossed } from 'lucide-react';
+import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, UtensilsCrossed, Utensils } from 'lucide-react';
 
 interface HomeViewProps {
   menu: MenuItem[];
@@ -19,7 +19,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     setIsMobileMenuOpen(false);
   }, [activeSubPage]);
 
-  // Lock scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -35,18 +34,31 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
     { label: 'Kontak', id: 'CONTACT' as const },
   ];
 
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    target.style.display = 'none';
+    const parent = target.parentElement;
+    if (parent) {
+      parent.classList.add('flex', 'items-center', 'justify-center', 'bg-slate-900');
+      // Sisipkan ikon placeholder jika gambar gagal
+      const icon = document.createElement('div');
+      icon.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-700"><path d="M11 20A7 7 0 0 1 11 6a7 7 0 0 1 0 14Z"/><path d="M20 20l-4.5-4.5"/></svg>`;
+      parent.appendChild(icon);
+    }
+  };
+
   const renderLanding = () => (
     <>
       <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40 z-10"></div>
-          {/* Hero Image - High Priority */}
           <img 
             src="https://images.unsplash.com/photo-1626074353765-517a681e40be?q=30&w=800&auto=format&fit=crop" 
             alt="Hero BG" 
-            className="w-full h-full object-cover opacity-60 scale-105 will-change-transform"
+            className="w-full h-full object-cover opacity-60 scale-105"
             loading="eager"
+            onError={handleImgError}
           />
         </div>
 
@@ -81,14 +93,15 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <div className="w-24 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full"></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {menu.slice(0, 4).map((item) => (
+            {menu.filter(m => m.imageUrl).slice(0, 4).map((item) => (
               <div key={item.id} className="glass group p-0 rounded-[2rem] border-slate-800/50 hover:border-cyan-500/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer shadow-xl overflow-hidden" onClick={onOrderOnline}>
-                <div className="relative h-48 overflow-hidden bg-slate-900">
+                <div className="relative h-48 overflow-hidden bg-slate-900 flex items-center justify-center">
                    <img 
                     src={item.imageUrl} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                     alt={item.name} 
                     loading="eager" 
+                    onError={handleImgError}
                    />
                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
                 </div>
@@ -121,12 +134,13 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {menu.map((item) => (
           <div key={item.id} className="glass rounded-[2rem] border-slate-800/50 flex flex-col hover:bg-cyan-500/5 transition-all group shadow-xl overflow-hidden">
-            <div className="relative h-52 overflow-hidden bg-slate-900">
+            <div className="relative h-52 overflow-hidden bg-slate-900 flex items-center justify-center">
                <img 
                 src={item.imageUrl} 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                 alt={item.name} 
                 loading="lazy"
+                onError={handleImgError}
                />
                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
             </div>
@@ -171,7 +185,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
 
   return (
     <div className="min-h-screen bg-slate-950 selection:bg-cyan-500 selection:text-white pb-20 overflow-hidden">
-      {/* Top Navbar */}
       <nav className="fixed top-0 w-full z-[100] glass border-b border-slate-800/50 shadow-2xl">
         <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer relative z-[101] group" onClick={() => onSetSubPage('LANDING')}>
@@ -181,7 +194,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <span className="text-xl md:text-2xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">Resto-On</span>
           </div>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-10 text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] relative z-[101]">
             {navItems.map((item) => (
               <button 
@@ -194,7 +206,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             ))}
           </div>
 
-          {/* Desktop Crew Login */}
           <button 
             onClick={onLoginClick}
             className="hidden lg:flex items-center gap-3 px-6 py-3 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-black text-slate-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-all cursor-pointer tracking-widest uppercase shadow-xl"
@@ -202,7 +213,6 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
             <LogIn size={14} /> CREW LOGIN
           </button>
 
-          {/* Mobile Toggle Button */}
           <button 
             className="md:hidden p-2 text-slate-400 hover:text-white glass rounded-lg cursor-pointer relative z-[110]"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -212,12 +222,9 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <div className={`fixed inset-0 z-[105] md:hidden transition-all duration-500 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        {/* Background Blur Overlay */}
         <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" onClick={() => setIsMobileMenuOpen(false)}></div>
         
-        {/* Menu Content */}
         <div className={`absolute right-0 top-0 h-full w-[80%] max-w-xs glass border-l border-slate-800 p-8 flex flex-col justify-center gap-8 transition-transform duration-500 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
            <div className="space-y-6">
               <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mb-4">Navigasi Utama</p>
@@ -255,14 +262,9 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
                 Pesan Sekarang
               </button>
            </div>
-
-           <div className="absolute bottom-10 left-8">
-              <p className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">Resto-On OS v2.7 PRO</p>
-           </div>
         </div>
       </div>
 
-      {/* Main Content Areas */}
       <div className="animate-in fade-in duration-300 relative z-10">
         {activeSubPage === 'LANDING' && renderLanding()}
         {activeSubPage === 'FULL_MENU' && renderFullMenu()}

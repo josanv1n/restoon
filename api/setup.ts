@@ -9,9 +9,11 @@ const pool = createPool({
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is missing.");
-    // Ultra Low-Res Optimization
-    const OPT = 'q=20&w=200&auto=format&fit=crop&fm=webp';
+    
+    // Parameter optimasi gambar: q=40 (kualitas seimbang), w=400 (lebar cukup), auto=format
+    const OPT = 'q=40&w=400&auto=format&fit=crop';
 
+    // 1. Create Tables
     await pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`;
@@ -19,41 +21,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`;
     await pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`;
 
-    // Check if tablesCount exists
-    const { rows: tableSetting } = await pool.sql`SELECT * FROM settings WHERE key = 'tablesCount'`;
-    if (tableSetting.length === 0) {
-      await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12')`;
-    }
-    
-    // Set Default App Name
-    const { rows: nameSetting } = await pool.sql`SELECT * FROM settings WHERE key = 'restaurantName'`;
-    if (nameSetting.length === 0) {
-      await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'Resto-On')`;
-    }
+    // 2. Initialize Settings
+    await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
+    await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'Resto-On') ON CONFLICT (key) DO NOTHING`;
 
-    try { await pool.sql`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS image_url TEXT`; } catch(e) {}
+    // 3. Data Seeding - Full 15 Items
+    const fullMenu = [
+      { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1626074353765-517a681e40be' },
+      { id: '2', name: 'Nasi + Ayam Goreng', price: 23000, cat: 'FOOD', img: '1626645738196-c2a7c87a8f58' },
+      { id: '3', name: 'Nasi + Ayam Bakar', price: 23000, cat: 'FOOD', img: '1598515214211-89d3c73ae83b' },
+      { id: '4', name: 'Nasi + Ayam Telur Dadar', price: 20000, cat: 'FOOD', img: '1518492104633-130d0cc84637' },
+      { id: '5', name: 'Nasi + Tunjang', price: 27500, cat: 'FOOD', img: '1546069901-ba9599a7e63c' },
+      { id: '6', name: 'Rendang Premium', price: 20000, cat: 'FOOD', img: '1541544741938-0af808b77e40' },
+      { id: '7', name: 'Ayam Goreng Lengkuas', price: 16000, cat: 'FOOD', img: '1567620832903-9fc6debc209f' },
+      { id: '8', name: 'Ayam Bakar Spesial', price: 16000, cat: 'FOOD', img: '1555939594-58d7cb561ad1' },
+      { id: '9', name: 'Telur Dadar Barembo', price: 14000, cat: 'FOOD', img: '1525351484163-7529414344d8' },
+      { id: '10', name: 'Sayur Nangka Kapau', price: 10000, cat: 'FOOD', img: '1512621776951-a57141f2eefd' },
+      { id: '11', name: 'Jengkol Balado Luxury', price: 31000, cat: 'FOOD', img: '1563379091339-03b21ab4a4f8' },
+      { id: '12', name: 'Es Kelapa Jeruk Segar', price: 25000, cat: 'DRINK', img: '1544145945-f904253d0c7b' },
+      { id: '13', name: 'Es Teh Manis', price: 3000, cat: 'DRINK', img: '1556679343-c7306c1976bc' },
+      { id: '14', name: 'Teh Hangat', price: 2000, cat: 'DRINK', img: '1564890369478-c89ca6d9cde9' },
+      { id: '15', name: 'Es Jeruk Peras', price: 10000, cat: 'DRINK', img: '1613478223719-2ab802602423' },
+    ];
 
-    // Force update all images to Ultra low-res for existing data
-    const { rows: currentMenu } = await pool.sql`SELECT id, image_url FROM menu_items`;
-    for (const item of currentMenu) {
-        if (item.image_url && item.image_url.includes('unsplash.com')) {
-            const cleanUrl = item.image_url.split('?')[0];
-            await pool.sql`UPDATE menu_items SET image_url = ${`${cleanUrl}?${OPT}`} WHERE id = ${item.id}`;
-        }
-    }
-
-    const { rowCount: menuCount } = await pool.sql`SELECT * FROM menu_items LIMIT 1`;
-    if (menuCount === 0) {
+    for (const item of fullMenu) {
+      const imageUrl = `https://images.unsplash.com/photo-${item.img}?${OPT}`;
       await pool.sql`
-        INSERT INTO menu_items (id, name, category, price, stock, image_url) VALUES 
-        ('1', 'Nasi + Rendang', 'FOOD', 26000, 100, ${`https://images.unsplash.com/photo-1626074353765-517a681e40be?${OPT}`}), 
-        ('2', 'Nasi + Ayam Goreng', 'FOOD', 23000, 100, ${`https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?${OPT}`}),
-        ('11', 'Jengkol Balado Luxury', 'FOOD', 31000, 100, ${`https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?${OPT}`}),
-        ('15', 'Es Jeruk Peras', 'DRINK', 10000, 100, ${`https://images.unsplash.com/photo-1613478223719-2ab802602423?${OPT}`})
+        INSERT INTO menu_items (id, name, category, price, stock, image_url)
+        VALUES (${item.id}, ${item.name}, ${item.cat}, ${item.price}, 100, ${imageUrl})
+        ON CONFLICT (id) DO UPDATE SET image_url = EXCLUDED.image_url
       `;
     }
-    
-    return res.status(200).json({ success: true, message: "Protocol Optimized for Ultra-Speed." });
+
+    return res.status(200).json({ success: true, message: "Resto-On seeded successfully with full menu." });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
