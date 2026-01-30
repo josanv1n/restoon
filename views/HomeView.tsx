@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MenuItem } from '../types';
-import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus } from 'lucide-react';
+import { ChefHat, MapPin, Phone, LogIn, ChevronRight, Star, Clock, ArrowLeft, Instagram, Twitter, Mail, Menu as MenuIcon, X, Plus, UtensilsCrossed } from 'lucide-react';
 
 interface HomeViewProps {
   menu: MenuItem[];
@@ -58,7 +58,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 neon-text-cyan">Minang Cuisine.</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-300 max-w-lg leading-relaxed font-medium">
-              Nikmati kelezatan <span className="text-cyan-400 font-bold">Rendang & Jengkol Balado</span> yang tersaji dengan estetika modern di <span className="text-white font-bold underline decoration-cyan-500">BAGINDO RAJO</span>.
+              Nikmati kelezatan <span className="text-cyan-400 font-bold">Rendang & Jengkol Balado</span> yang tersaji dengan estetika modern di <span className="text-white font-bold underline decoration-cyan-500">RM. Bagindo Rajo</span>.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <button 
@@ -146,7 +146,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
   const renderProfile = () => (
     <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto animate-in fade-in duration-300">
       <div className="glass p-12 rounded-[3rem] border-slate-800 space-y-8 shadow-2xl relative overflow-hidden text-center">
-        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">Bagindo Rajo</h2>
+        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter neon-text-cyan uppercase font-mono">RM. Bagindo Rajo</h2>
         <p className="text-xl text-slate-300 italic font-light">"Penjaga warisan budaya Minangkabau."</p>
       </div>
     </section>
@@ -174,9 +174,9 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
         <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer relative z-[101] group" onClick={() => onSetSubPage('LANDING')}>
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center neon-border shadow-cyan-500/30 group-hover:rotate-[360deg] transition-transform duration-700">
-              <span className="font-bold text-xl md:text-2xl text-white">BR</span>
+              <UtensilsCrossed size={24} className="text-white" />
             </div>
-            <span className="text-xl md:text-2xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">Bagindo Rajo</span>
+            <span className="text-xl md:text-2xl font-bold tracking-tighter neon-text-cyan font-mono uppercase">RM. Bagindo Rajo</span>
           </div>
 
           {/* Desktop Nav */}
@@ -270,7 +270,7 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
 
       <footer className="mt-20 py-10 border-t border-slate-800/50 px-6 relative z-10 opacity-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em]">
-          <p>© 2025 Bagindo Rajo | Resto-On OS</p>
+          <p>© 2025 RM. Bagindo Rajo | Resto-On OS</p>
         </div>
       </footer>
     </div>
