@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserRole, Order, OrderStatus, PaymentMethod, MenuItem, AppSettings } from './types';
 import { INITIAL_MENU } from './constants';
@@ -104,68 +103,78 @@ const App: React.FC = () => {
     }
   };
 
-  const renderActiveView = () => {
+  const renderRoleView = () => {
     switch (activeRole) {
-      case UserRole.CUSTOMER: return <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} />;
-      case UserRole.PELAYAN: return <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} />;
-      case UserRole.KASIR: return <CashierView orders={orders} onProcessPayment={handleProcessPayment} />;
-      case UserRole.ADMIN: return <AdminView menu={menu} onMenuUpdate={() => fetchData(true)} settings={settings} />;
-      case UserRole.MANAGEMENT: return <ManagementView orders={orders} />;
-      default: return null;
+      case UserRole.GUEST: 
+        return (
+          <HomeView 
+            menu={menu} 
+            onLoginClick={() => setShowLogin(true)} 
+            onOrderOnline={() => setActiveRole(UserRole.CUSTOMER)}
+            activeSubPage={homeSubPage}
+            onSetSubPage={setHomeSubPage}
+          />
+        );
+      case UserRole.CUSTOMER: 
+        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} /></Layout>;
+      case UserRole.PELAYAN: 
+        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} /></Layout>;
+      case UserRole.KASIR: 
+        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><CashierView orders={orders} onProcessPayment={handleProcessPayment} /></Layout>;
+      case UserRole.ADMIN: 
+        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><AdminView menu={menu} onMenuUpdate={() => fetchData(true)} settings={settings} /></Layout>;
+      case UserRole.MANAGEMENT: 
+        return <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => setActiveRole(UserRole.GUEST)}><ManagementView orders={orders} /></Layout>;
+      default: 
+        return null;
     }
   };
 
-  if (activeRole === UserRole.GUEST) {
-    return (
-      <HomeView 
-        menu={menu} 
-        onLoginClick={() => setShowLogin(true)} 
-        onOrderOnline={() => setActiveRole(UserRole.CUSTOMER)}
-        activeSubPage={homeSubPage}
-        onSetSubPage={setHomeSubPage}
-      />
-    );
-  }
-
   return (
-    <Layout activeRole={activeRole} onRoleChange={setActiveRole} onLogout={() => { setActiveRole(UserRole.GUEST); setHomeSubPage('LANDING'); }}>
-      <div className="relative">
-        {syncing && (
-          <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[10px] font-bold animate-pulse">
-            <Loader2 size={12} className="animate-spin" /> SYNCING...
-          </div>
-        )}
-        
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
-             <Loader2 size={48} className="animate-spin text-cyan-500" />
-             <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing System...</p>
-          </div>
-        ) : (
-          <div className="animate-in fade-in duration-500">
-            {renderActiveView()}
-          </div>
-        )}
+    <div className="relative min-h-screen">
+      {syncing && (
+        <div className="fixed top-6 right-6 z-[100] glass px-4 py-2 rounded-full border border-cyan-500/30 flex items-center gap-2 text-cyan-400 text-[10px] font-bold animate-pulse">
+          <Loader2 size={12} className="animate-spin" /> SYNCING...
+        </div>
+      )}
+      
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-slate-950">
+           <Loader2 size={48} className="animate-spin text-cyan-500" />
+           <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Initializing System...</p>
+        </div>
+      ) : (
+        <div className="animate-in fade-in duration-500">
+          {renderRoleView()}
+        </div>
+      )}
 
-        {showLogin && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
-            <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6">
-              <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-slate-500"><X size={24} /></button>
-              <h2 className="text-2xl font-bold neon-text-cyan text-center">Resto-On Login</h2>
-              <div className="grid gap-3">
-                {[UserRole.PELAYAN, UserRole.KASIR, UserRole.ADMIN, UserRole.MANAGEMENT].map(role => (
-                  <button key={role} onClick={() => { setActiveRole(role); setShowLogin(false); }} className="w-full py-4 px-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 text-left font-bold transition-all flex justify-between items-center group">
-                    <span className="text-slate-300 group-hover:text-white uppercase text-xs tracking-widest">{role}</span>
-                    <ChevronRight size={16} />
-                  </button>
-                ))}
-              </div>
+      {/* Login Modal - Global Access */}
+      {showLogin && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
+          <div className="relative glass w-full max-w-md p-10 rounded-[2.5rem] border border-slate-800 space-y-6 shadow-2xl shadow-cyan-500/10">
+            <button onClick={() => setShowLogin(false)} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold neon-text-cyan">Crew Access</h2>
+              <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Authorized Personnel Only</p>
+            </div>
+            <div className="grid gap-3 pt-4">
+              {[UserRole.PELAYAN, UserRole.KASIR, UserRole.ADMIN, UserRole.MANAGEMENT].map(role => (
+                <button 
+                  key={role} 
+                  onClick={() => { setActiveRole(role); setShowLogin(false); }} 
+                  className="w-full py-4 px-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-left font-bold transition-all flex justify-between items-center group"
+                >
+                  <span className="text-slate-400 group-hover:text-white uppercase text-xs tracking-widest">{role} System</span>
+                  <ChevronRight size={16} className="text-slate-600 group-hover:text-cyan-400 transition-colors" />
+                </button>
+              ))}
             </div>
           </div>
-        )}
-      </div>
-    </Layout>
+        </div>
+      )}
+    </div>
   );
 };
 
