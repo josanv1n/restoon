@@ -94,6 +94,7 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
           </div>
         </header>
 
+        {/* Daftar Menu: Tanpa batasan tinggi di mobile agar mengikuti scroll utama */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredMenu.map((item) => {
             const inCart = cart.find(c => c.menuId === item.id);
@@ -128,7 +129,7 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
       </div>
 
       <div className="lg:col-span-1">
-        <div className="glass rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 space-y-6 shadow-2xl">
+        <div className="glass rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 space-y-6 shadow-2xl lg:sticky lg:top-10">
           <div className="flex items-center gap-3 border-b border-slate-800 pb-6">
             <ShoppingCart className="text-cyan-400" size={20} />
             <h3 className="text-lg md:text-xl font-bold font-mono tracking-tighter uppercase">Keranjang</h3>
@@ -181,7 +182,7 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
             </div>
           )}
 
-          <div className="max-h-[180px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+          <div className="max-h-[180px] lg:max-h-[300px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
             {cart.length === 0 ? (
               <div className="py-8 text-center border border-dashed border-slate-800 rounded-2xl opacity-40">
                 <p className="text-[9px] uppercase font-bold tracking-[0.2em]">Belum Ada Pesanan</p>

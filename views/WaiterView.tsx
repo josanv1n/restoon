@@ -148,7 +148,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tab
           </div>
         </div>
 
-        {/* Menu Selection - NO IMAGES */}
+        {/* Menu Selection - Menghapus max-h pada mobile agar mengikuti scroll halaman utama */}
         <div className="lg:col-span-6 space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
@@ -161,7 +161,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tab
             />
           </div>
           
-          <div className="grid grid-cols-1 gap-2 max-h-[50vh] lg:max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
+          <div className="grid grid-cols-1 gap-2 lg:max-h-[60vh] lg:overflow-y-auto pr-1 custom-scrollbar">
             {menu.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase())).map(item => {
               const inCart = cart.find(c => c.menuId === item.id);
               return (
@@ -196,7 +196,7 @@ const WaiterView: React.FC<WaiterViewProps> = ({ menu, orders, onPlaceOrder, tab
 
         {/* Summary */}
         <div className="lg:col-span-3">
-          <div className="glass rounded-[1.5rem] md:rounded-[2rem] border border-slate-800 p-6 md:p-8 space-y-6 shadow-2xl">
+          <div className="glass rounded-[1.5rem] md:rounded-[2rem] border border-slate-800 p-6 md:p-8 space-y-6 shadow-2xl lg:sticky lg:top-10">
             <h3 className="font-bold text-[10px] tracking-widest uppercase border-b border-slate-800 pb-4 text-slate-500 flex items-center justify-between">
               Order Summary
               <span className={`px-2 py-0.5 rounded text-[8px] border ${orderType === OrderType.DINE_IN ? 'border-cyan-500/30 text-cyan-500' : 'border-pink-500/30 text-pink-500'}`}>

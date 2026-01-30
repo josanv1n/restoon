@@ -95,9 +95,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, loggedRole, onRol
         </div>
       </aside>
 
-      <main className="flex-1 relative overflow-y-auto custom-scrollbar bg-slate-950">
+      {/* Memperbaiki scrolling di Android dengan touch-scrolling dan min-h-screen */}
+      <main className="flex-1 relative overflow-y-auto overflow-x-hidden custom-scrollbar bg-slate-950 min-h-screen" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_#1e293b_0%,_transparent_50%)] opacity-20 pointer-events-none"></div>
-        <div className="p-4 sm:p-6 md:p-10 relative">
+        <div className="p-4 sm:p-6 md:p-10 relative pb-24 md:pb-10">
           {children}
         </div>
       </main>

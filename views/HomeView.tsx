@@ -283,7 +283,8 @@ const HomeView: React.FC<HomeViewProps> = ({ menu, onLoginClick, onOrderOnline, 
               {item.label}
             </button>
           ))}
-          <button onClick={onLoginClick} className="px-10 py-5 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest text-xs">Staff Terminal</button>
+          {/* Mengubah 'Staff Terminal' menjadi 'Login Masuk' sesuai permintaan */}
+          <button onClick={onLoginClick} className="px-10 py-5 bg-cyan-600 rounded-2xl text-white font-bold uppercase tracking-widest text-xs">Login Masuk</button>
         </div>
       </div>
 
