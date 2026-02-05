@@ -230,7 +230,7 @@ const App: React.FC = () => {
             </div>
             <form onSubmit={loginMode === 'REGISTER' ? handleRegister : handleLogin} className="space-y-5">
               {loginMode === 'REGISTER' && (
-                <div className="space-y-4">
+                <div className="space-y-4 animate-in slide-in-from-top-4 duration-300">
                   <div className="relative">
                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                     <input type="text" required placeholder="Nama Lengkap" value={regName} onChange={e => setRegName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
@@ -267,32 +267,36 @@ const App: React.FC = () => {
               </div>
 
               <button type="submit" className={`w-full py-5 rounded-2xl text-white font-bold shadow-xl transition-all uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 ${loginMode === 'STAFF' ? 'bg-gradient-to-r from-cyan-600 to-blue-700 shadow-cyan-500/20' : 'bg-gradient-to-r from-pink-600 to-rose-700 shadow-pink-500/20'}`}>
-                {loginMode === 'REGISTER' ? 'DAFTAR AKUN BARU' : 'LOGIN (Masuk)'}
+                {loginMode === 'REGISTER' ? 'DAFTAR & SIMPAN' : 'LOGIN (Masuk)'}
                 <ChevronRight size={18} />
               </button>
             </form>
             
-            {/* Link Registrasi Baru */}
+            {/* Clickable text for registration switch */}
             {loginMode === 'CUSTOMER' && (
-              <div className="text-center">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Belum punya akun?</p>
+              <div className="text-center mt-2">
                 <button 
                   onClick={() => setLoginMode('REGISTER')}
-                  className="flex items-center gap-2 mx-auto text-pink-500 hover:text-white transition-all font-black text-[11px] uppercase tracking-[0.2em]"
+                  className="group flex flex-col items-center mx-auto transition-all"
                 >
-                  <UserPlus size={14} /> Daftar Sekarang
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 group-hover:text-slate-400">Belum punya akun?</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-pink-500 group-hover:text-white group-hover:underline decoration-pink-500 flex items-center gap-2">
+                    <UserPlus size={14} /> Daftar Sekarang
+                  </span>
                 </button>
               </div>
             )}
 
             {loginMode === 'REGISTER' && (
-              <div className="text-center">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Sudah punya akun?</p>
+              <div className="text-center mt-2">
                 <button 
                   onClick={() => setLoginMode('CUSTOMER')}
-                  className="flex items-center gap-2 mx-auto text-cyan-500 hover:text-white transition-all font-black text-[11px] uppercase tracking-[0.2em]"
+                  className="group flex flex-col items-center mx-auto transition-all"
                 >
-                  <LogIn size={14} /> Kembali ke Login
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 group-hover:text-slate-400">Sudah punya akun?</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-500 group-hover:text-white group-hover:underline decoration-cyan-500 flex items-center gap-2">
+                    <LogIn size={14} /> Kembali ke Login
+                  </span>
                 </button>
               </div>
             )}

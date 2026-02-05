@@ -13,7 +13,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
     // 1. Pastikan Tabel Tersedia
-    // Update tabel customers dengan kolom created_at
     await Promise.all([
       pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`,
@@ -22,6 +21,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`
     ]);
+
+    // Update schema untuk tabel yang sudah ada (Migration)
+    // Menambahkan kolom created_at jika belum ada
+    try {
+      await pool.sql`ALTER TABLE customers ADD COLUMN IF NOT EXISTS created_at BIGINT`;
+    } catch (e) {
+      console.log("Schema update note: created_at might already exist or error adding it", e);
+    }
 
     // 2. Default Settings
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
