@@ -9,37 +9,57 @@ interface ManagementViewProps {
 }
 
 const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
-  // 1. State for Date Range
-  const today = new Date().toISOString().split('T')[0];
-  const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  // Utility untuk mendapatkan tanggal hari ini dalam format YYYY-MM-DD (Local Time)
+  const getTodayString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const today = getTodayString();
   
-  const [startDate, setStartDate] = useState(firstDayOfMonth);
+  // Mengubah default startDate dari awal bulan menjadi hari ini
+  const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
 
-  // 2. Filter Orders based on Range
+  // 2. Filter Orders berdasarkan Rentang Tanggal yang dipilih
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
+      // Hanya tampilkan yang sudah lunas (PAID)
       if (o.paymentStatus !== 'PAID') return false;
-      const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
-      return orderDate >= startDate && orderDate <= endDate;
+      
+      const orderDateObj = new Date(o.createdAt);
+      const year = orderDateObj.getFullYear();
+      const month = String(orderDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(orderDateObj.getDate()).padStart(2, '0');
+      const orderDateStr = `${year}-${month}-${day}`;
+      
+      return orderDateStr >= startDate && orderDateStr <= endDate;
     });
   }, [orders, startDate, endDate]);
 
-  // 3. Aggregate Daily Data
+  // 3. Agregasi Data Harian untuk Chart dan Ringkasan
   const dailyStats = useMemo(() => {
     const map = new Map<string, { date: string, total: number, count: number }>();
     
-    // Initialize range to ensure no gaps in chart
+    // Inisialisasi range agar chart tidak ada gap (meskipun hanya 1 hari)
     let curr = new Date(startDate);
     const end = new Date(endDate);
-    while (curr <= end) {
+    
+    // Safety break untuk mencegah infinite loop jika ada kesalahan input tanggal
+    let limit = 0;
+    while (curr <= end && limit < 366) {
       const d = curr.toISOString().split('T')[0];
       map.set(d, { date: d, total: 0, count: 0 });
       curr.setDate(curr.getDate() + 1);
+      limit++;
     }
 
     filteredOrders.forEach(o => {
-      const d = new Date(o.createdAt).toISOString().split('T')[0];
+      const orderDateObj = new Date(o.createdAt);
+      const d = `${orderDateObj.getFullYear()}-${String(orderDateObj.getMonth() + 1).padStart(2, '0')}-${String(orderDateObj.getDate()).padStart(2, '0')}`;
       const existing = map.get(d) || { date: d, total: 0, count: 0 };
       map.set(d, {
         date: d,
@@ -76,7 +96,7 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
              <h2 className="text-2xl md:text-3xl font-bold neon-text-pink font-mono uppercase tracking-tighter">Business BI</h2>
              <span className="px-2 py-0.5 bg-pink-500/10 border border-pink-500/20 rounded text-[8px] font-bold text-pink-500 uppercase tracking-widest">Live Engine</span>
           </div>
-          <p className="text-xs text-slate-500">Analisis performa & audit keuangan real-time</p>
+          <p className="text-xs text-slate-500">Performa keuangan per tanggal {startDate === endDate ? new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'periode pilihan'}</p>
         </div>
 
         {/* Date Filter Controls */}
@@ -118,7 +138,7 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
         {/* Revenue Flow Chart */}
         <div className="lg:col-span-2 glass p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col">
           <h3 className="text-sm font-bold mb-8 flex items-center gap-2 uppercase tracking-widest text-slate-400">
-            <TrendingUp size={16} className="text-cyan-400" /> Grafik Pendapatan Harian
+            <TrendingUp size={16} className="text-cyan-400" /> {startDate === endDate ? 'Analisis Pendapatan Hari Ini' : 'Grafik Pendapatan Periode'}
           </h3>
           <div className="h-[250px] md:h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -134,12 +154,16 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
                   dataKey="date" 
                   stroke="#475569" 
                   fontSize={10} 
-                  tickFormatter={(str) => str.split('-').slice(1).reverse().join('/')}
+                  tickFormatter={(str) => {
+                    const d = new Date(str);
+                    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' });
+                  }}
                 />
                 <YAxis stroke="#475569" fontSize={10} tickFormatter={(val) => `Rp${val/1000}k`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', fontSize: '10px' }}
                   itemStyle={{ color: '#06b6d4' }}
+                  formatter={(val: any) => [`Rp ${val.toLocaleString()}`, 'Total Revenue']}
                 />
                 <Area type="monotone" dataKey="total" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
               </AreaChart>
@@ -148,7 +172,7 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
         </div>
 
         {/* Distribution */}
-        <div className="lg:col-span-1 glass p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col items-center justify-center">
+        <div className="lg:col-span-1 glass p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col items-center justify-center text-center">
           <h3 className="text-sm font-bold mb-6 self-start uppercase tracking-widest text-slate-400">Metode Pesanan</h3>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -170,7 +194,7 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
       {/* Daily Summary Table */}
       <div className="space-y-4">
         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-2 pl-2">
-          <List size={14} className="text-pink-500" /> Ringkasan Harian Per Tanggal
+          <List size={14} className="text-pink-500" /> Ringkasan Total Per Tanggal
         </h3>
         <div className="glass rounded-[2rem] border border-slate-800 overflow-hidden shadow-2xl">
           <div className="overflow-x-auto custom-scrollbar">
@@ -180,20 +204,29 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
                   <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Tanggal</th>
                   <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Jumlah Transaksi</th>
                   <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Total Nominal</th>
-                  <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Status</th>
+                  <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Verifikasi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/30">
                 {dailyStats.filter(s => s.count > 0).reverse().map((stat, idx) => (
                   <tr key={idx} className="hover:bg-pink-500/5 transition-all group">
-                    <td className="px-8 py-5 font-bold text-slate-200 font-mono text-sm">{new Date(stat.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</td>
-                    <td className="px-8 py-5 text-sm text-slate-400">{stat.count} Pesanan Sukses</td>
+                    <td className="px-8 py-5 font-bold text-slate-200 font-mono text-sm">
+                      {new Date(stat.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </td>
+                    <td className="px-8 py-5 text-sm text-slate-400">{stat.count} Pesanan</td>
                     <td className="px-8 py-5 font-mono font-bold text-cyan-400 text-sm">Rp {stat.total.toLocaleString()}</td>
                     <td className="px-8 py-5 text-right">
-                      <span className="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-black text-emerald-500 uppercase">Verified</span>
+                      <span className="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-black text-emerald-500 uppercase">Settled</span>
                     </td>
                   </tr>
                 ))}
+                {filteredOrders.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-8 py-10 text-center">
+                       <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Tidak ada data transaksi hari ini</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -207,7 +240,7 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
             <Clock size={14} className="text-cyan-500" /> Rincian Transaksi Detail
           </h3>
           <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-[9px] font-bold text-slate-400 hover:text-white transition-all">
-             <Download size={12} /> EXPORT CSV
+             <Download size={12} /> EXPORT DATA
           </button>
         </div>
         
@@ -250,7 +283,7 @@ const ManagementView: React.FC<ManagementViewProps> = ({ orders }) => {
                 {filteredOrders.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-8 py-20 text-center">
-                       <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Tidak ada data untuk periode ini</p>
+                       <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Belum ada rincian data</p>
                     </td>
                   </tr>
                 )}
