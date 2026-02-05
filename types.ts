@@ -11,6 +11,7 @@ export enum UserRole {
 export enum OrderStatus {
   PENDING = 'PENDING',
   PREPARING = 'PREPARING',
+  ON_DELIVERY = 'ON_DELIVERY', // Status baru untuk pengiriman
   SERVED = 'SERVED',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED'
@@ -56,6 +57,10 @@ export interface Order {
   paymentStatus: 'UNPAID' | 'PAID';
   origin: 'OFFLINE' | 'ONLINE';
   customerId?: string;
+  // New Fields for Online Orders
+  paymentProof?: string; // URL/Base64 gambar bukti bayar
+  courierName?: string;  // Delivery By
+  isReceived?: boolean;  // Diterima oleh customer
 }
 
 export interface UserAccount {

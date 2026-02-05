@@ -23,7 +23,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         paymentStatus: row.payment_status || 'UNPAID',
         paymentMethod: row.payment_method,
         origin: row.origin || 'OFFLINE',
-        customerId: row.customer_id
+        customerId: row.customer_id,
+        paymentProof: row.payment_proof,
+        courierName: row.courier_name,
+        isReceived: row.is_received
       }));
       
       return res.status(200).json(orders);
@@ -50,13 +53,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'PATCH') {
-      const { id, status, paymentStatus, paymentMethod, items, total } = req.body;
+      const { id, status, paymentStatus, paymentMethod, items, total, paymentProof, courierName, isReceived } = req.body;
       
       if (items !== undefined && total !== undefined) {
+        // Update Items (Waiter menambah pesanan)
         const itemsJson = JSON.stringify(items);
         await pool.sql`UPDATE orders SET items = ${itemsJson}, total = ${Number(total)} WHERE id = ${id}`;
-      } else if (paymentStatus === 'PAID') {
-        // Atomic Update & Transaction record
+      } 
+      else if (paymentProof !== undefined) {
+        // Customer Upload Bukti Bayar
+        await pool.sql`UPDATE orders SET payment_proof = ${paymentProof} WHERE id = ${id}`;
+      }
+      else if (courierName !== undefined) {
+        // Kasir/Admin Set Kurir & Status Pengiriman
+        await pool.sql`UPDATE orders SET courier_name = ${courierName}, status = 'ON_DELIVERY' WHERE id = ${id}`;
+      }
+      else if (isReceived !== undefined) {
+        // Customer Konfirmasi Terima Barang
+        await pool.sql`UPDATE orders SET is_received = ${isReceived}, status = 'SERVED' WHERE id = ${id}`;
+      }
+      else if (paymentStatus === 'PAID') {
+        // Atomic Update & Transaction record (Kasir Approve Payment)
         const now = Date.now();
         const date = new Date(now).toISOString().split('T')[0];
         
@@ -66,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         await pool.sql`
           UPDATE orders 
-          SET status = 'PAID', payment_status = 'PAID', payment_method = ${paymentMethod}
+          SET status = ${status || 'PAID'}, payment_status = 'PAID', payment_method = ${paymentMethod}
           WHERE id = ${id}
         `;
 
@@ -75,6 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           VALUES (${'TX-' + id}, ${id}, ${amount}, ${paymentMethod}, ${now}, ${date})
         `;
       } else if (status) {
+        // Update Status Umum
         await pool.sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
       }
       return res.status(200).json({ success: true });

@@ -90,7 +90,12 @@ const App: React.FC = () => {
     };
     runSetup();
     const interval = setInterval(() => fetchData(), 30000); 
-    return () => clearInterval(interval);
+    const refreshListener = () => fetchData();
+    window.addEventListener('refreshData', refreshListener);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('refreshData', refreshListener);
+    };
   }, [fetchData]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -169,12 +174,19 @@ const App: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  const handleProcessPayment = async (orderId: string, method: any) => {
+  const handleProcessPayment = async (orderId: string, method: any, extraData: any = {}) => {
     try {
+      const payload = { 
+        id: orderId, 
+        paymentStatus: 'PAID', 
+        paymentMethod: method,
+        ...extraData 
+      };
+      
       const res = await fetch('/api/orders', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: orderId, paymentStatus: 'PAID', paymentMethod: method })
+        body: JSON.stringify(payload)
       });
       if (res.ok) await fetchData();
     } catch (err) { console.error(err); }
@@ -194,7 +206,7 @@ const App: React.FC = () => {
         onRoleChange={setActiveRole} 
         onLogout={() => { setActiveRole(UserRole.GUEST); setCurrentUser(null); }}
       >
-        {activeRole === UserRole.CUSTOMER && <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} tablesCount={tablesCount} />}
+        {activeRole === UserRole.CUSTOMER && <CustomerView menu={menu} onPlaceOrder={handlePlaceOrder} existingOrders={orders} tablesCount={tablesCount} currentUser={currentUser} />}
         {activeRole === UserRole.PELAYAN && <WaiterView menu={menu} orders={orders} onPlaceOrder={handlePlaceOrder} onUpdateStatus={() => {}} tablesCount={tablesCount} />}
         {activeRole === UserRole.KASIR && <CashierView orders={orders} onProcessPayment={handleProcessPayment} />}
         {activeRole === UserRole.ADMIN && <AdminView menu={menu} onMenuUpdate={() => fetchData()} settings={settings} />}
@@ -318,4 +330,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-    

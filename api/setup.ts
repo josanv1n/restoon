@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 1. Pastikan Tabel Tersedia
     await Promise.all([
-      pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT, payment_proof TEXT, courier_name TEXT, is_received BOOLEAN)`,
       pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT, address TEXT, created_at BIGINT)`,
@@ -26,6 +26,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       await pool.sql`ALTER TABLE customers ADD COLUMN IF NOT EXISTS created_at BIGINT`;
       await pool.sql`ALTER TABLE customers ADD COLUMN IF NOT EXISTS address TEXT`;
+      // New columns for Online Orders
+      await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof TEXT`;
+      await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_name TEXT`;
+      await pool.sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_received BOOLEAN`;
     } catch (e) {
       console.log("Schema update note: columns might already exist", e);
     }
@@ -63,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Database restoon initialized with address support." });
+    return res.status(200).json({ success: true, message: "Database restoon initialized with address and online order support." });
   } catch (error: any) {
     console.error("Setup Error:", error);
     return res.status(500).json({ error: error.message });
