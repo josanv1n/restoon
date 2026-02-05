@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
-import { MenuItem, OrderType, OrderStatus, OrderItem, Order, Customer } from '../types';
-import { ShoppingCart, Plus, Minus, ChevronRight, LayoutGrid, CheckCircle2, Utensils, History, Upload, Truck, PackageCheck, AlertCircle } from 'lucide-react';
+import { MenuItem, OrderType, OrderStatus, OrderItem, Order } from '../types';
+import { ShoppingCart, Plus, Minus, ChevronRight, LayoutGrid, CheckCircle2, Utensils, History, Upload, Truck, PackageCheck, AlertCircle, Clock, MapPin } from 'lucide-react';
 
 interface CustomerViewProps {
   menu: MenuItem[];
@@ -14,10 +14,11 @@ interface CustomerViewProps {
 const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existingOrders, tablesCount, currentUser }) => {
   const [activeTab, setActiveTab] = useState<'MENU' | 'HISTORY'>('MENU');
   const [cart, setCart] = useState<OrderItem[]>([]);
-  const [orderType, setOrderType] = useState<OrderType>(OrderType.TAKEAWAY); // Default Takeaway/Delivery for online
+  const [orderType, setOrderType] = useState<OrderType>(OrderType.TAKEAWAY); 
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [category, setCategory] = useState<'ALL' | 'FOOD' | 'DRINK'>('ALL');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const occupiedTables = existingOrders
     .filter(o => o.type === OrderType.DINE_IN && o.status !== OrderStatus.PAID && o.status !== OrderStatus.CANCELLED)
@@ -59,8 +60,14 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
       return;
     }
 
+    // Alamat wajib untuk order online
+    if (!currentUser?.address && !currentUser?.phone) {
+        alert("Mohon lengkapi profil (Alamat & Telepon) sebelum memesan delivery.");
+        return;
+    }
+
     const newOrder = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substr(2, 9).toUpperCase(),
       type: orderType,
       tableNumber: orderType === OrderType.DINE_IN ? selectedTable : undefined,
       items: cart,
@@ -68,51 +75,63 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
       status: OrderStatus.PENDING,
       createdAt: Date.now(),
       paymentStatus: 'UNPAID',
-      origin: 'ONLINE', // Online Customer always ONLINE
+      origin: 'ONLINE', 
       customerId: currentUser?.email
     };
     onPlaceOrder(newOrder);
     setCart([]);
     setSelectedTable(null);
-    setActiveTab('HISTORY'); // Auto switch to history
+    setActiveTab('HISTORY'); 
   };
 
-  const handleUploadProof = async (orderId: string, file: File) => {
-    if (file.size > 1024 * 1024) { // 1MB Limit for this demo
-      alert("Ukuran file terlalu besar (Max 1MB)");
-      return;
+  const handleUploadClick = (orderId: string) => {
+    setUploadingId(orderId);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset input
+        fileInputRef.current.click();
     }
+  };
 
-    // Convert to Base64 (Simulation for DB storage)
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-      try {
-        const res = await fetch('/api/orders', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: orderId, paymentProof: base64String })
-        });
-        if (res.ok) {
-           alert("Bukti pembayaran berhasil diupload! Menunggu konfirmasi admin.");
-           window.dispatchEvent(new CustomEvent('refreshData')); // Force refresh in App.tsx logic if needed or relying on interval
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0] && uploadingId) {
+        const file = e.target.files[0];
+        if (file.size > 2 * 1024 * 1024) { 
+            alert("Ukuran file terlalu besar (Max 2MB)");
+            return;
         }
-      } catch (e) {
-        alert("Gagal upload");
-      }
-    };
-    reader.readAsDataURL(file);
+
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64String = reader.result as string;
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: uploadingId, paymentProof: base64String })
+                });
+                if (res.ok) {
+                    alert("Bukti pembayaran berhasil diupload! Mohon tunggu verifikasi kasir.");
+                    window.dispatchEvent(new CustomEvent('refreshData'));
+                }
+            } catch (error) {
+                alert("Gagal mengupload gambar.");
+            } finally {
+                setUploadingId(null);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
   };
 
   const handleConfirmReceived = async (orderId: string) => {
-    if (!confirm("Apakah Anda yakin pesanan sudah diterima dengan baik?")) return;
+    if (!confirm("Konfirmasi pesanan sudah diterima?")) return;
     try {
       await fetch('/api/orders', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: orderId, isReceived: true })
       });
-      alert("Terima kasih! Pesanan selesai.");
+      window.dispatchEvent(new CustomEvent('refreshData'));
     } catch (e) {
       alert("Gagal konfirmasi.");
     }
@@ -121,9 +140,18 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
   const isCheckoutDisabled = cart.length === 0 || (orderType === OrderType.DINE_IN && selectedTable === null);
 
   return (
-    <div className="pb-10">
+    <div className="pb-24">
+      {/* Hidden File Input Global */}
+      <input 
+        type="file" 
+        accept="image/*" 
+        className="hidden" 
+        ref={fileInputRef} 
+        onChange={handleFileChange}
+      />
+
       {/* Mobile Tab Switcher */}
-      <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-800 mb-6 lg:hidden">
+      <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-800 mb-6 lg:hidden sticky top-0 z-40 backdrop-blur-md">
         <button onClick={() => setActiveTab('MENU')} className={`flex-1 py-3 px-4 rounded-lg text-[10px] font-bold uppercase tracking-widest ${activeTab === 'MENU' ? 'bg-cyan-500 text-white' : 'text-slate-500'}`}>Menu</button>
         <button onClick={() => setActiveTab('HISTORY')} className={`flex-1 py-3 px-4 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 ${activeTab === 'HISTORY' ? 'bg-pink-600 text-white' : 'text-slate-500'}`}>
           <History size={12} /> Pesanan Saya {myOrders.filter(o => o.status !== OrderStatus.SERVED && o.status !== OrderStatus.CANCELLED).length > 0 && <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>}
@@ -131,12 +159,15 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        {/* Main Content Area */}
+        
+        {/* Main Content (Menu) */}
         <div className={`lg:col-span-2 space-y-6 ${activeTab === 'HISTORY' ? 'hidden lg:block lg:opacity-50 lg:pointer-events-none' : ''}`}>
           <header className="flex flex-col gap-4">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold neon-text-cyan uppercase font-mono tracking-tighter">Halo, {currentUser?.name || 'Pelanggan'}</h2>
-              <p className="text-[10px] md:text-xs text-slate-500 uppercase tracking-widest font-bold">Mau makan apa hari ini?</p>
+              <h2 className="text-2xl md:text-3xl font-bold neon-text-cyan uppercase font-mono tracking-tighter">Halo, {currentUser?.name?.split(' ')[0] || 'Kak'}</h2>
+              <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                 <MapPin size={12} className="text-pink-500" /> {currentUser?.address || 'Alamat belum diset'}
+              </div>
             </div>
             <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar">
               {['ALL', 'FOOD', 'DRINK'].map((cat) => (
@@ -157,14 +188,15 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
             {filteredMenu.map((item) => {
               const inCart = cart.find(c => c.menuId === item.id);
               return (
-                <div key={item.id} className="glass p-5 rounded-2xl border border-slate-800 hover:border-cyan-500/30 transition-all flex justify-between items-center group">
-                  <div className="space-y-1 overflow-hidden pr-4">
-                     <div className="flex items-center gap-2">
-                       <Utensils size={12} className="text-cyan-500/50" />
-                       <h3 className="text-sm md:text-base font-bold text-white group-hover:text-cyan-400 transition-colors truncate">{item.name}</h3>
+                <div key={item.id} className="glass p-4 rounded-2xl border border-slate-800 hover:border-cyan-500/30 transition-all flex justify-between items-center group">
+                  <div className="flex items-center gap-4 overflow-hidden pr-2">
+                     <div className="w-16 h-16 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0">
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                      </div>
-                     <p className="text-base md:text-lg font-bold font-mono text-cyan-500">Rp {item.price.toLocaleString('id-ID')}</p>
-                     <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">{item.category}</p>
+                     <div className="space-y-1 overflow-hidden">
+                        <h3 className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors truncate">{item.name}</h3>
+                        <p className="text-sm font-bold font-mono text-cyan-500">Rp {item.price.toLocaleString('id-ID')}</p>
+                     </div>
                   </div>
                   
                   <div className="shrink-0">
@@ -175,8 +207,8 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
                         <button onClick={() => removeFromCart(item.id)} className="p-2 text-slate-400 hover:text-white"><Minus size={14} /></button>
                       </div>
                     ) : (
-                      <button onClick={() => addToCart(item)} className="p-4 bg-slate-900 border border-slate-800 text-slate-500 rounded-xl hover:bg-cyan-500 hover:text-white hover:border-cyan-400 transition-all active:scale-95">
-                        <Plus size={20} />
+                      <button onClick={() => addToCart(item)} className="p-3 bg-slate-900 border border-slate-800 text-slate-500 rounded-xl hover:bg-cyan-500 hover:text-white hover:border-cyan-400 transition-all active:scale-95 shadow-lg">
+                        <Plus size={18} />
                       </button>
                     )}
                   </div>
@@ -186,9 +218,10 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
           </div>
         </div>
 
-        {/* Right Sidebar: Cart (Desktop) / History (Tabbed) */}
+        {/* Right Sidebar: Cart & History */}
         <div className={`lg:col-span-1 ${activeTab === 'MENU' ? 'hidden lg:block' : 'block'}`}>
-          {/* CART VIEW */}
+          
+          {/* CART MODE */}
           {activeTab === 'MENU' && (
             <div className="glass rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 space-y-6 shadow-2xl lg:sticky lg:top-10">
               <div className="flex items-center gap-3 border-b border-slate-800 pb-6">
@@ -207,11 +240,11 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
                   onClick={() => { setOrderType(OrderType.TAKEAWAY); setSelectedTable(null); }} 
                   className={`py-3 rounded-lg text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all ${orderType === OrderType.TAKEAWAY ? 'bg-cyan-500 text-white shadow-lg' : 'text-slate-500'}`}
                 >
-                  Kirim / Bawa
+                  Delivery
                 </button>
               </div>
 
-              {orderType === OrderType.DINE_IN && (
+              {orderType === OrderType.DINE_IN ? (
                 <div className="space-y-4">
                   <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
                     <LayoutGrid size={12} /> Meja Tersedia
@@ -220,15 +253,13 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
                     {Array.from({ length: tablesCount }, (_, i) => {
                       const tableNum = i + 1;
                       const isOccupied = occupiedTables.includes(tableNum);
-                      const isSelected = selectedTable === tableNum;
-                      
                       return (
                         <button
                           key={tableNum}
                           disabled={isOccupied}
                           onClick={() => setSelectedTable(tableNum)}
-                          className={`h-10 md:h-12 rounded-xl text-[10px] font-bold border transition-all ${
-                            isSelected 
+                          className={`h-10 rounded-xl text-[10px] font-bold border transition-all ${
+                            selectedTable === tableNum 
                               ? 'bg-cyan-500 border-cyan-400 text-white shadow-lg' 
                               : isOccupied 
                                 ? 'bg-red-500/10 border-red-500/20 text-red-500/30 cursor-not-allowed' 
@@ -241,12 +272,17 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
                     })}
                   </div>
                 </div>
+              ) : (
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 text-[10px] text-slate-400 space-y-2">
+                   <p className="font-bold uppercase tracking-widest flex items-center gap-2 text-pink-500"><MapPin size={12} /> Alamat Pengiriman:</p>
+                   <p className="text-slate-200">{currentUser?.address || 'Harap isi alamat di profil.'}</p>
+                </div>
               )}
 
-              <div className="max-h-[180px] lg:max-h-[300px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+              <div className="max-h-[180px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                 {cart.length === 0 ? (
                   <div className="py-8 text-center border border-dashed border-slate-800 rounded-2xl opacity-40">
-                    <p className="text-[9px] uppercase font-bold tracking-[0.2em]">Belum Ada Pesanan</p>
+                    <p className="text-[9px] uppercase font-bold tracking-[0.2em]">Keranjang Kosong</p>
                   </div>
                 ) : (
                   cart.map((item) => (
@@ -272,103 +308,108 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
                   disabled={isCheckoutDisabled} 
                   className={`w-full py-4 mt-6 rounded-xl font-bold flex items-center justify-center gap-3 transition-all uppercase tracking-widest text-[10px] ${
                     !isCheckoutDisabled 
-                      ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-xl shadow-cyan-500/20' 
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-xl shadow-cyan-500/20 hover:scale-[1.02]' 
                       : 'bg-slate-900 text-slate-700 cursor-not-allowed border border-slate-800'
                   }`}
                 >
                   {orderType === OrderType.DINE_IN && selectedTable 
-                    ? `Kirim Meja M${selectedTable}` 
-                    : 'Buat Pesanan'}
+                    ? `Pesan ke Meja M${selectedTable}` 
+                    : 'Checkout Delivery'}
                   <ChevronRight size={14} />
                 </button>
               </div>
             </div>
           )}
 
-          {/* HISTORY VIEW (My Orders) */}
+          {/* HISTORY MODE */}
           {activeTab === 'HISTORY' && (
              <div className="glass rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 space-y-6 shadow-2xl lg:sticky lg:top-10 min-h-[50vh]">
                <div className="flex items-center gap-3 border-b border-slate-800 pb-6">
                 <History className="text-pink-500" size={20} />
-                <h3 className="text-lg md:text-xl font-bold font-mono tracking-tighter uppercase">Pesanan Saya</h3>
+                <h3 className="text-lg md:text-xl font-bold font-mono tracking-tighter uppercase">Status Pesanan</h3>
               </div>
               
               <div className="space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
                 {myOrders.length === 0 ? (
                   <div className="text-center py-10 opacity-50">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Belum ada riwayat pesanan.</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Belum ada pesanan aktif.</p>
                   </div>
                 ) : (
                   myOrders.map(order => (
-                    <div key={order.id} className="bg-slate-900/40 p-5 rounded-2xl border border-slate-800/50 space-y-4">
+                    <div key={order.id} className="bg-slate-900/40 p-5 rounded-2xl border border-slate-800/50 space-y-4 hover:border-slate-700 transition-colors">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">#{order.id.slice(-6)}</p>
-                          <p className="text-xs font-bold text-slate-200 mt-1">{new Date(order.createdAt).toLocaleDateString('id-ID')}</p>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ORDER #{order.id.slice(-6)}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><Clock size={10} /> {new Date(order.createdAt).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</p>
                         </div>
-                        <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border ${
-                          order.status === OrderStatus.PAID || order.status === OrderStatus.SERVED ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                          order.status === OrderStatus.ON_DELIVERY ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                          'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                        }`}>
-                          {order.status === OrderStatus.ON_DELIVERY ? 'DIKIRIM' : order.status}
-                        </span>
+                        {order.status === OrderStatus.SERVED ? (
+                            <span className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SELESAI</span>
+                        ) : order.status === OrderStatus.ON_DELIVERY ? (
+                            <span className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1"><Truck size={8} /> DIKIRIM</span>
+                        ) : order.status === OrderStatus.CANCELLED ? (
+                            <span className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">BATAL</span>
+                        ) : (
+                             <span className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">PROSES</span>
+                        )}
                       </div>
-                      
-                      {/* Action Section based on Status */}
-                      <div className="pt-4 border-t border-slate-800/50">
+
+                      {/* Timeline / Action Section */}
+                      <div className="pt-2 border-t border-slate-800/50 space-y-3">
+                        
+                        {/* STEP 1: PAYMENT */}
                         {order.paymentStatus === 'UNPAID' && !order.paymentProof && (
-                           <div className="space-y-3">
-                             <div className="flex items-center gap-2 text-yellow-500 text-[10px] font-bold bg-yellow-500/5 p-2 rounded-lg border border-yellow-500/10">
-                               <AlertCircle size={12} /> Menunggu Pembayaran
+                           <div className="space-y-3 animate-in fade-in">
+                             <div className="p-3 bg-yellow-500/5 border border-yellow-500/10 rounded-xl">
+                               <p className="text-[10px] text-yellow-200 font-bold mb-1 flex items-center gap-2"><AlertCircle size={12} /> Menunggu Pembayaran</p>
+                               <p className="text-[9px] text-slate-400 leading-relaxed">Total: <span className="text-white font-bold">Rp {order.total.toLocaleString()}</span>. Transfer ke BCA <span className="font-mono text-white">123-456-7890</span> a.n Bagindo Rajo.</p>
                              </div>
-                             <p className="text-[10px] text-slate-400">Silakan transfer ke BCA 1234567890 a.n Bagindo Rajo, lalu upload bukti.</p>
-                             <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden" 
-                                ref={fileInputRef} 
-                                onChange={(e) => e.target.files && handleUploadProof(order.id, e.target.files[0])}
-                             />
                              <button 
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 border border-slate-700 transition-all"
+                                onClick={() => handleUploadClick(order.id)}
+                                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 border border-slate-600 transition-all shadow-lg"
                              >
                                <Upload size={14} /> Upload Bukti Transfer
                              </button>
                            </div>
                         )}
                         
+                        {/* STEP 2: WAITING VERIFICATION */}
                         {order.paymentStatus === 'UNPAID' && order.paymentProof && (
-                           <div className="flex items-center gap-2 text-cyan-400 text-[10px] font-bold bg-cyan-500/5 p-2 rounded-lg border border-cyan-500/10">
-                              <CheckCircle2 size={12} /> Bukti Terkirim, Menunggu Verifikasi
+                           <div className="flex items-center gap-3 p-3 bg-cyan-500/5 border border-cyan-500/10 rounded-xl">
+                              <Clock size={16} className="text-cyan-400 animate-pulse" />
+                              <div>
+                                  <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Verifikasi Pembayaran</p>
+                                  <p className="text-[9px] text-slate-400">Kasir sedang mengecek bukti transfer Anda.</p>
+                              </div>
                            </div>
                         )}
 
+                        {/* STEP 3: ON DELIVERY */}
                         {order.status === OrderStatus.ON_DELIVERY && (
-                           <div className="space-y-3">
-                              <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
-                                 <Truck size={12} /> Sedang Dikirim oleh: {order.courierName}
+                           <div className="space-y-3 animate-in slide-in-from-top-2">
+                              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl space-y-2">
+                                 <div className="flex items-center gap-2 text-blue-400 font-bold text-[10px] uppercase tracking-widest">
+                                    <Truck size={14} /> Pesanan Sedang Diantar
+                                 </div>
+                                 <div className="bg-slate-950/50 p-2 rounded-lg">
+                                    <p className="text-[9px] text-slate-500 uppercase tracking-widest">Kurir (Delivery By)</p>
+                                    <p className="text-sm font-bold text-white">{order.courierName || 'Kurir Toko'}</p>
+                                 </div>
                               </div>
                               <button 
                                 onClick={() => handleConfirmReceived(order.id)}
                                 className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
                               >
-                                <PackageCheck size={14} /> Konfirmasi Diterima
+                                <PackageCheck size={14} /> Pesanan Diterima
                               </button>
                            </div>
                         )}
 
+                         {/* STEP 4: SERVED/DONE */}
                          {order.status === OrderStatus.SERVED && (
-                           <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10">
-                              <CheckCircle2 size={12} /> Pesanan Selesai
+                           <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10 justify-center">
+                              <CheckCircle2 size={12} /> Transaksi Selesai
                            </div>
                         )}
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                         <span className="text-[9px] font-bold text-slate-500 uppercase">{order.items.length} Menu</span>
-                         <span className="font-mono font-bold text-sm text-cyan-400">Rp {order.total.toLocaleString('id-ID')}</span>
                       </div>
                     </div>
                   ))
