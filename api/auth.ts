@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       // Customer Login
       const { rows } = await pool.sql`
-        SELECT id, name, email, phone 
+        SELECT id, name, email, phone, address
         FROM customers 
         WHERE email = ${username} AND password = ${password}
       `;

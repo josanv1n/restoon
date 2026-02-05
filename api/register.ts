@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Data tidak lengkap' });
@@ -19,10 +19,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const id = 'CUST-' + Math.random().toString(36).substr(2, 9).toUpperCase();
     const createdAt = Date.now();
 
-    // Simpan ke tabel customers
+    // Simpan ke tabel customers termasuk alamat
     await pool.sql`
-      INSERT INTO customers (id, name, email, password, phone, created_at)
-      VALUES (${id}, ${name}, ${email}, ${password}, ${phone || null}, ${createdAt})
+      INSERT INTO customers (id, name, email, password, phone, address, created_at)
+      VALUES (${id}, ${name}, ${email}, ${password}, ${phone || null}, ${address || null}, ${createdAt})
     `;
 
     return res.status(201).json({ success: true, message: 'Registrasi Berhasil' });

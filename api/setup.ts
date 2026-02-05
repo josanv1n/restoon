@@ -17,17 +17,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`,
-      pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT, created_at BIGINT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT, address TEXT, created_at BIGINT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`
     ]);
 
     // Update schema untuk tabel yang sudah ada (Migration)
-    // Menambahkan kolom created_at jika belum ada
     try {
       await pool.sql`ALTER TABLE customers ADD COLUMN IF NOT EXISTS created_at BIGINT`;
+      await pool.sql`ALTER TABLE customers ADD COLUMN IF NOT EXISTS address TEXT`;
     } catch (e) {
-      console.log("Schema update note: created_at might already exist or error adding it", e);
+      console.log("Schema update note: columns might already exist", e);
     }
 
     // 2. Default Settings
@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Database restoon initialized with created_at support." });
+    return res.status(200).json({ success: true, message: "Database restoon initialized with address support." });
   } catch (error: any) {
     console.error("Setup Error:", error);
     return res.status(500).json({ error: error.message });

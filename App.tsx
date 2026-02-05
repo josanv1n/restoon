@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { UserRole, Order, OrderStatus, PaymentMethod, MenuItem, AppSettings, UserAccount, Customer } from './types';
+import { UserRole, Order, MenuItem, AppSettings } from './types';
 import { INITIAL_MENU, LOGO_URL } from './constants';
 import Layout from './components/Layout';
 import HomeView from './views/HomeView';
@@ -9,8 +9,7 @@ import WaiterView from './views/WaiterView';
 import CashierView from './views/CashierView';
 import AdminView from './views/AdminView';
 import ManagementView from './views/ManagementView';
-// FIX: Added 'LogIn' to the lucide-react imports to resolve the reference error in the registration view.
-import { Loader2, X, ChevronRight, User as UserIcon, Lock, Key, Mail, Phone, Info, UserPlus, LogIn } from 'lucide-react';
+import { Loader2, X, ChevronRight, User as UserIcon, Lock, Mail, Phone, UserPlus, LogIn, MapPin } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<UserRole>(UserRole.GUEST);
@@ -37,9 +36,12 @@ const App: React.FC = () => {
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Registration States
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
+  const [regAddress, setRegAddress] = useState('');
 
   const isFetchingRef = useRef(false);
 
@@ -129,14 +131,19 @@ const App: React.FC = () => {
           name: regName,
           email: regEmail,
           password: password,
-          phone: regPhone
+          phone: regPhone,
+          address: regAddress
         })
       });
       const data = await res.json();
       if (res.ok) {
         alert("Pendaftaran Berhasil! Silakan Login.");
         setLoginMode('CUSTOMER');
-        setUsername(regEmail);
+        setUsername(regEmail); // Auto fill email for login
+        setRegName('');
+        setRegEmail('');
+        setRegPhone('');
+        setRegAddress('');
       } else {
         alert("REGISTRASI GAGAL: " + data.error);
       }
@@ -162,7 +169,7 @@ const App: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  const handleProcessPayment = async (orderId: string, method: PaymentMethod) => {
+  const handleProcessPayment = async (orderId: string, method: any) => {
     try {
       const res = await fetch('/api/orders', {
         method: 'PATCH',
@@ -239,6 +246,10 @@ const App: React.FC = () => {
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                     <input type="tel" placeholder="Nomor Telepon (Opsional)" value={regPhone} onChange={e => setRegPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
                   </div>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                    <input type="text" required placeholder="Alamat Lengkap" value={regAddress} onChange={e => setRegAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
+                  </div>
                 </div>
               )}
               
@@ -272,7 +283,6 @@ const App: React.FC = () => {
               </button>
             </form>
             
-            {/* Clickable text for registration switch */}
             {loginMode === 'CUSTOMER' && (
               <div className="text-center mt-2">
                 <button 
@@ -308,3 +318,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+    
