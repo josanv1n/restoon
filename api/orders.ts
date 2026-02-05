@@ -62,6 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } 
       else if (paymentProof !== undefined) {
         // Customer Upload Bukti Bayar
+        // Kolom payment_proof bertipe TEXT, cukup untuk menyimpan Base64 string gambar (Blob simulation)
         await pool.sql`UPDATE orders SET payment_proof = ${paymentProof} WHERE id = ${id}`;
       }
       else if (courierName !== undefined) {

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { MenuItem, OrderType, OrderStatus, OrderItem, Order } from '../types';
-import { ShoppingCart, Plus, Minus, ChevronRight, LayoutGrid, CheckCircle2, Utensils, History, Upload, Truck, PackageCheck, AlertCircle, Clock, MapPin } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, ChevronRight, LayoutGrid, CheckCircle2, Utensils, History, Upload, Truck, PackageCheck, AlertCircle, Clock, MapPin, Camera } from 'lucide-react';
 
 interface CustomerViewProps {
   menu: MenuItem[];
@@ -61,8 +61,9 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
     }
 
     // Alamat wajib untuk order online
-    if (!currentUser?.address && !currentUser?.phone) {
-        alert("Mohon lengkapi profil (Alamat & Telepon) sebelum memesan delivery.");
+    if (orderType === OrderType.TAKEAWAY && (!currentUser?.address || !currentUser?.phone)) {
+        alert("Mohon lengkapi alamat dan nomor telepon di profil sebelum memesan delivery.");
+        // Opsional: Redirect ke halaman profil atau tampilkan form
         return;
     }
 
@@ -86,8 +87,9 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
 
   const handleUploadClick = (orderId: string) => {
     setUploadingId(orderId);
+    // Trigger klik pada input file yang tersembunyi
     if (fileInputRef.current) {
-        fileInputRef.current.value = ''; // Reset input
+        fileInputRef.current.value = ''; // Reset value agar onChange trigger meski file sama
         fileInputRef.current.click();
     }
   };
@@ -95,31 +97,43 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0] && uploadingId) {
         const file = e.target.files[0];
-        if (file.size > 2 * 1024 * 1024) { 
-            alert("Ukuran file terlalu besar (Max 2MB)");
+        
+        // Validasi ukuran (Max 4MB agar muat di Vercel function body limit)
+        if (file.size > 4 * 1024 * 1024) { 
+            alert("Ukuran file terlalu besar (Max 4MB)");
             return;
         }
 
         const reader = new FileReader();
         reader.onloadend = async () => {
             const base64String = reader.result as string;
+            
+            // Optimistic UI update notification
+            const confirmUpload = confirm("Upload gambar ini sebagai bukti pembayaran?");
+            if(!confirmUpload) return;
+
             try {
                 const res = await fetch('/api/orders', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: uploadingId, paymentProof: base64String })
                 });
+                
                 if (res.ok) {
                     alert("Bukti pembayaran berhasil diupload! Mohon tunggu verifikasi kasir.");
-                    window.dispatchEvent(new CustomEvent('refreshData'));
+                    window.dispatchEvent(new CustomEvent('refreshData')); // Refresh global data
+                } else {
+                    const errData = await res.json();
+                    alert("Gagal upload: " + errData.error);
                 }
             } catch (error) {
-                alert("Gagal mengupload gambar.");
+                console.error(error);
+                alert("Terjadi kesalahan jaringan saat upload.");
             } finally {
                 setUploadingId(null);
             }
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(file); // Convert to Base64
     }
   };
 
@@ -141,7 +155,7 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
 
   return (
     <div className="pb-24">
-      {/* Hidden File Input Global */}
+      {/* Hidden File Input Global - Placed here to ensure it's always rendered */}
       <input 
         type="file" 
         accept="image/*" 
@@ -151,7 +165,7 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
       />
 
       {/* Mobile Tab Switcher */}
-      <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-800 mb-6 lg:hidden sticky top-0 z-40 backdrop-blur-md">
+      <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-800 mb-6 lg:hidden sticky top-0 z-40 backdrop-blur-md shadow-lg">
         <button onClick={() => setActiveTab('MENU')} className={`flex-1 py-3 px-4 rounded-lg text-[10px] font-bold uppercase tracking-widest ${activeTab === 'MENU' ? 'bg-cyan-500 text-white' : 'text-slate-500'}`}>Menu</button>
         <button onClick={() => setActiveTab('HISTORY')} className={`flex-1 py-3 px-4 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 ${activeTab === 'HISTORY' ? 'bg-pink-600 text-white' : 'text-slate-500'}`}>
           <History size={12} /> Pesanan Saya {myOrders.filter(o => o.status !== OrderStatus.SERVED && o.status !== OrderStatus.CANCELLED).length > 0 && <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>}
@@ -363,23 +377,34 @@ const CustomerView: React.FC<CustomerViewProps> = ({ menu, onPlaceOrder, existin
                                <p className="text-[10px] text-yellow-200 font-bold mb-1 flex items-center gap-2"><AlertCircle size={12} /> Menunggu Pembayaran</p>
                                <p className="text-[9px] text-slate-400 leading-relaxed">Total: <span className="text-white font-bold">Rp {order.total.toLocaleString()}</span>. Transfer ke BCA <span className="font-mono text-white">123-456-7890</span> a.n Bagindo Rajo.</p>
                              </div>
+                             {/* TOMBOL UPLOAD BUKTI */}
                              <button 
                                 onClick={() => handleUploadClick(order.id)}
                                 className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 border border-slate-600 transition-all shadow-lg"
                              >
-                               <Upload size={14} /> Upload Bukti Transfer
+                               <Camera size={14} className="text-cyan-400" /> Upload Bukti Foto
                              </button>
+                             <p className="text-[8px] text-center text-slate-600 italic">Klik tombol di atas untuk memilih foto dari galeri/kamera</p>
                            </div>
                         )}
                         
                         {/* STEP 2: WAITING VERIFICATION */}
                         {order.paymentStatus === 'UNPAID' && order.paymentProof && (
-                           <div className="flex items-center gap-3 p-3 bg-cyan-500/5 border border-cyan-500/10 rounded-xl">
-                              <Clock size={16} className="text-cyan-400 animate-pulse" />
-                              <div>
-                                  <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Verifikasi Pembayaran</p>
-                                  <p className="text-[9px] text-slate-400">Kasir sedang mengecek bukti transfer Anda.</p>
-                              </div>
+                           <div className="space-y-3">
+                               <div className="flex items-center gap-3 p-3 bg-cyan-500/5 border border-cyan-500/10 rounded-xl">
+                                  <Clock size={16} className="text-cyan-400 animate-pulse" />
+                                  <div>
+                                      <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Verifikasi Pembayaran</p>
+                                      <p className="text-[9px] text-slate-400">Kasir sedang mengecek bukti transfer Anda.</p>
+                                  </div>
+                               </div>
+                               {/* Preview Bukti yang sudah diupload */}
+                               <div className="relative w-full h-32 rounded-xl overflow-hidden border border-slate-800 bg-slate-900 group">
+                                  <img src={order.paymentProof} alt="Bukti" className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                      <span className="bg-black/50 px-2 py-1 rounded text-[8px] text-white">Preview Bukti</span>
+                                  </div>
+                               </div>
                            </div>
                         )}
 
