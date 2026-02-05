@@ -9,7 +9,8 @@ import WaiterView from './views/WaiterView';
 import CashierView from './views/CashierView';
 import AdminView from './views/AdminView';
 import ManagementView from './views/ManagementView';
-import { Loader2, X, ChevronRight, User as UserIcon, Lock, Key, Mail, Phone, Info } from 'lucide-react';
+// FIX: Added 'LogIn' to the lucide-react imports to resolve the reference error in the registration view.
+import { Loader2, X, ChevronRight, User as UserIcon, Lock, Key, Mail, Phone, Info, UserPlus, LogIn } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeRole, setActiveRole] = useState<UserRole>(UserRole.GUEST);
@@ -38,6 +39,7 @@ const App: React.FC = () => {
   const [password, setPassword] = useState('');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
+  const [regPhone, setRegPhone] = useState('');
 
   const isFetchingRef = useRef(false);
 
@@ -96,7 +98,7 @@ const App: React.FC = () => {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, type: loginMode })
+        body: JSON.stringify({ username, password, type: loginMode === 'STAFF' ? 'STAFF' : 'CUSTOMER' })
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -120,10 +122,29 @@ const App: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      alert("Pendaftaran Berhasil! Silakan Login.");
-      setLoginMode('CUSTOMER');
-    } catch (err) { alert("Registrasi Gagal"); }
-    finally { setLoading(false); }
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: regName,
+          email: regEmail,
+          password: password,
+          phone: regPhone
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Pendaftaran Berhasil! Silakan Login.");
+        setLoginMode('CUSTOMER');
+        setUsername(regEmail);
+      } else {
+        alert("REGISTRASI GAGAL: " + data.error);
+      }
+    } catch (err) { 
+      alert("Registrasi Gagal: Kesalahan jaringan."); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handlePlaceOrder = async (newOrder: Order) => {
@@ -193,7 +214,7 @@ const App: React.FC = () => {
       {showLogin && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" onClick={() => setShowLogin(false)}></div>
-          <div className="relative glass w-full max-w-lg p-12 rounded-[3rem] border border-slate-800 space-y-8 shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="relative glass w-full max-w-lg p-12 rounded-[3rem] border border-slate-800 space-y-8 shadow-2xl animate-in zoom-in-95 duration-300 overflow-y-auto max-h-[90vh] custom-scrollbar">
             <button onClick={() => setShowLogin(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors p-2"><X size={24} /></button>
             <div className="text-center space-y-3">
               <div className="w-20 h-20 bg-cyan-500/5 rounded-3xl flex items-center justify-center mx-auto border border-cyan-500/10 shadow-2xl mb-2 overflow-hidden bg-slate-900">
@@ -208,20 +229,73 @@ const App: React.FC = () => {
               <button onClick={() => setLoginMode('CUSTOMER')} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${loginMode === 'CUSTOMER' || loginMode === 'REGISTER' ? 'bg-pink-600 text-white shadow-lg' : 'text-slate-500'}`}>CUSTOMER</button>
             </div>
             <form onSubmit={loginMode === 'REGISTER' ? handleRegister : handleLogin} className="space-y-5">
-              {loginMode === 'REGISTER' ? (
-                <>
-                  <input type="text" required placeholder="Full Name" value={regName} onChange={e => setRegName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-4 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
-                  <input type="email" required placeholder="Email Address" value={regEmail} onChange={e => setRegEmail(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-4 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
-                </>
-              ) : (
-                <input type="text" required placeholder={loginMode === 'STAFF' ? "Username" : "Email"} value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-4 pr-4 py-4 outline-none focus:border-cyan-500 transition-all text-sm" />
+              {loginMode === 'REGISTER' && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                    <input type="text" required placeholder="Nama Lengkap" value={regName} onChange={e => setRegName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
+                  </div>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                    <input type="tel" placeholder="Nomor Telepon (Opsional)" value={regPhone} onChange={e => setRegPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-pink-500 transition-all text-sm" />
+                  </div>
+                </div>
               )}
-              <input type="password" required placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-4 pr-4 py-4 outline-none focus:border-cyan-500 transition-all text-sm" />
+              
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <input 
+                  type={loginMode === 'REGISTER' ? "email" : "text"} 
+                  required 
+                  placeholder={loginMode === 'STAFF' ? "Username" : "Email Address"} 
+                  value={loginMode === 'REGISTER' ? regEmail : username} 
+                  onChange={e => loginMode === 'REGISTER' ? setRegEmail(e.target.value) : setUsername(e.target.value)} 
+                  className={`w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none transition-all text-sm ${loginMode === 'STAFF' ? 'focus:border-cyan-500' : 'focus:border-pink-500'}`} 
+                />
+              </div>
+
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <input 
+                  type="password" 
+                  required 
+                  placeholder="Password" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  className={`w-full bg-slate-950 border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none transition-all text-sm ${loginMode === 'STAFF' ? 'focus:border-cyan-500' : 'focus:border-pink-500'}`} 
+                />
+              </div>
+
               <button type="submit" className={`w-full py-5 rounded-2xl text-white font-bold shadow-xl transition-all uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 ${loginMode === 'STAFF' ? 'bg-gradient-to-r from-cyan-600 to-blue-700 shadow-cyan-500/20' : 'bg-gradient-to-r from-pink-600 to-rose-700 shadow-pink-500/20'}`}>
-                {loginMode === 'REGISTER' ? 'Register Now' : 'Initialize Session'}
+                {loginMode === 'REGISTER' ? 'DAFTAR AKUN BARU' : 'LOGIN (Masuk)'}
                 <ChevronRight size={18} />
               </button>
             </form>
+            
+            {/* Link Registrasi Baru */}
+            {loginMode === 'CUSTOMER' && (
+              <div className="text-center">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Belum punya akun?</p>
+                <button 
+                  onClick={() => setLoginMode('REGISTER')}
+                  className="flex items-center gap-2 mx-auto text-pink-500 hover:text-white transition-all font-black text-[11px] uppercase tracking-[0.2em]"
+                >
+                  <UserPlus size={14} /> Daftar Sekarang
+                </button>
+              </div>
+            )}
+
+            {loginMode === 'REGISTER' && (
+              <div className="text-center">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Sudah punya akun?</p>
+                <button 
+                  onClick={() => setLoginMode('CUSTOMER')}
+                  className="flex items-center gap-2 mx-auto text-cyan-500 hover:text-white transition-all font-black text-[11px] uppercase tracking-[0.2em]"
+                >
+                  <LogIn size={14} /> Kembali ke Login
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

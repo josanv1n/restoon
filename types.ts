@@ -72,6 +72,7 @@ export interface Customer {
   email: string;
   phone?: string;
   password?: string;
+  createdAt?: number;
 }
 
 export interface Transaction {

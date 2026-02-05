@@ -13,23 +13,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const OPT = 'q=20&w=300&auto=format&fit=crop&fm=webp';
 
     // 1. Pastikan Tabel Tersedia
+    // Update tabel customers dengan kolom created_at
     await Promise.all([
       pool.sql`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, type TEXT, table_number INTEGER, items TEXT, total NUMERIC, status TEXT, created_at BIGINT, order_date TEXT, payment_status TEXT, payment_method TEXT, origin TEXT, customer_id TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, order_id TEXT, amount NUMERIC, payment_method TEXT, created_at BIGINT, transaction_date TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password TEXT, role TEXT, name TEXT)`,
-      pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT)`,
+      pool.sql`CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT, phone TEXT, created_at BIGINT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, name TEXT, category TEXT, price NUMERIC, stock INTEGER, image_url TEXT)`,
       pool.sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`
     ]);
 
-    // 2. Default Settings (Gunakan DO NOTHING agar tidak menimpa setting manual)
+    // 2. Default Settings
     await pool.sql`INSERT INTO settings (key, value) VALUES ('tablesCount', '12') ON CONFLICT (key) DO NOTHING`;
     await pool.sql`INSERT INTO settings (key, value) VALUES ('restaurantName', 'RM. Bagindo Rajo') ON CONFLICT (key) DO NOTHING`;
 
     // 3. Initial Seeding Menu
-    // Kuncinya adalah ON CONFLICT (id) DO NOTHING. 
-    // Ini berarti jika menu dengan ID tersebut sudah ada, database akan mengabaikan perintah insert ini
-    // dan mempertahankan data yang sudah ada (termasuk hasil update manual Anda).
     const fullMenu = [
       { id: '1', name: 'Nasi + Rendang', price: 26000, cat: 'FOOD', img: '1626074353765-517a681e40be' }, 
       { id: '2', name: 'Nasi + Ayam Goreng', price: 23000, cat: 'FOOD', img: '1626645738196-c2a7c87a8f58' },
@@ -58,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    return res.status(200).json({ success: true, message: "Database restoon initialized without overwriting existing data." });
+    return res.status(200).json({ success: true, message: "Database restoon initialized with created_at support." });
   } catch (error: any) {
     console.error("Setup Error:", error);
     return res.status(500).json({ error: error.message });
